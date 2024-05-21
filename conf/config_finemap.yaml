@@ -1,9 +1,10 @@
 path_base: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap"
 path_code: "workflow/scripts/"
+path_mapping: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz"
 path_pwas: "/exchange/healthds/pQTL/results/INTERVAL/chunk_1083/chunk_1083_output/chunk_1083/results/gwas"
 path_geno: "/home/dariush.ghasemi/projects/pqtl_pipeline_ldsc/output/plinkFormat/impute_recoded_selected_sample_filter_hq_var_chr"
 
-sumstats_path: conf/path_list_meta.txt
+sumstats_path: conf/path_test.txt  #conf/path_list_meta.txt
 workspace_path: "results/meta"
 
 #labels:
@@ -16,10 +17,11 @@ labels:
   chr_label: "CHR"
   pos_label: "POS"
 
-#study_id: "study_id"
-
 thresholds:
   p1: 5e-08
   p2: 1e-06
+  p3: 1e-04
+  p4: 1e-06
+  maf: 1e-04
   ppp: 0.99
   hole: 250000

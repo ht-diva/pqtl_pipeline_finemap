@@ -3,7 +3,7 @@ jobs: 250
 software-deployment-method:
    - conda
    - apptainer
-retries: 3
+retries: 0
 
 # Cluster submission
 jobname: "{jobid}.{rule}"
@@ -18,7 +18,7 @@ printshellcmds: True
 scheduler: ilp
 
 default-resources:
-    slurm_partition: cpuq
+    slurm_partition: gpuq
     #slurm_account: ${USER}
     mem_mb: attempt * 512
     threads: 1

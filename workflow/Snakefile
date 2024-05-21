@@ -19,45 +19,46 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        expand(ws_path("break/{seqid}_loci.tsv"), seqid=analytes.seqid),
+        #expand(ws_path("break/{seqid}_loci.tsv"), seqid=analytes.seqid),
+        expand(ws_path("cojo/{seqid}/{locus}/"), seqid=analytes.seqid, locus = data.locus),
 
 
-rule break_locus:
-    input:
-        gwas=get_sumstats,
-    output:
-        loci=ws_path("break/{seqid}_loci.tsv"),
-    conda:
-        "envs/r_environment.yml"
-    params:
-        codes=config.get("path_code"),
-        study_id="{seqid}",
-        outdir=ws_path("break/{seqid}"),
-        p1=config.get("thresholds").get("p1"),
-        p2=config.get("thresholds").get("p2"),
-        hole=config.get("thresholds").get("hole"),
-        p_label=config.get("labels").get("p_label"),
-        chr_label=config.get("labels").get("chr_label"),
-        pos_label=config.get("labels").get("pos_label"),
-    log:
-        ws_path("logs/break/{seqid}.log"),
-    resources:
-        runtime=lambda wc, attempt: attempt * 30,
-    shell:
-        """
-        Rscript=`ls /conda-envs/*/bin/Rscript`;
-        $Rscript workflow/scripts/s03_locus_breaker.R \
-            --pipeline_path {params.codes} \
-            --input {input.gwas} \
-            --study_id '{params.study_id}' \
-            --p_thresh1 {params.p1} \
-            --p_thresh2 {params.p2} \
-            --hole      {params.hole} \
-            --outdir    {params.outdir} \
-            --p_label   {params.p_label} \
-            --chr_label {params.chr_label} \
-            --pos_label {params.pos_label} 2> {log}
-        """
+# rule break_locus:
+#     input:
+#         gwas=get_sumstats,
+#     output:
+#         loci=ws_path("break/{seqid}_loci.tsv"),
+#     conda:
+#         "envs/r_environment.yml"
+#     params:
+#         codes=config.get("path_code"),
+#         study_id="{seqid}",
+#         outdir=ws_path("break/{seqid}"),
+#         p1=config.get("thresholds").get("p1"),
+#         p2=config.get("thresholds").get("p2"),
+#         hole=config.get("thresholds").get("hole"),
+#         p_label=config.get("labels").get("p_label"),
+#         chr_label=config.get("labels").get("chr_label"),
+#         pos_label=config.get("labels").get("pos_label"),
+#     log:
+#         ws_path("logs/break/{seqid}.log"),
+#     resources:
+#         runtime=lambda wc, attempt: attempt * 30,
+#     shell:
+#         """
+#         Rscript=`ls /conda-envs/*/bin/Rscript`;
+#         $Rscript workflow/scripts/s03_locus_breaker.R \
+#             --pipeline_path {params.codes} \
+#             --input {input.gwas} \
+#             --study_id '{params.study_id}' \
+#             --p_thresh1 {params.p1} \
+#             --p_thresh2 {params.p2} \
+#             --hole      {params.hole} \
+#             --outdir    {params.outdir} \
+#             --p_label   {params.p_label} \
+#             --chr_label {params.chr_label} \
+#             --pos_label {params.pos_label} 2> {log}
+#         """
 
 
 rule run_cojo:
@@ -66,38 +67,40 @@ rule run_cojo:
         loci=ws_path("break/{seqid}_loci.tsv"),
     output:
         odir=ws_path("cojo/{seqid}/"),
-        log=ws_path("logs/cojo/{seqid}.log"),
+        #log=ws_path("logs/cojo/{seqid}.log"),
+    conda:
+        "envs/r_environment.yml"
     params:
-        codes=config.get("path_code"),
-        geno=config.get("path_geno"),
-        ofile=ws_path("cojo/{seqid}"),
-        ppp=config.get("thresholds").get("ppp"),
+        codes   = config.get("path_code"),
+        geno    = config.get("path_geno"),
+        ofile   = ws_path("cojo/{seqid}"),
+        mapping = config.get("path_mapping"),
+        ppp     = config.get('thresholds').get('ppp'),
+        p3      = config.get('thresholds').get('p3'),
+        p4      = config.get('thresholds').get('p4'),
+        maf     = config.get('thresholds').get('maf')
     log:
-        ws_path("logs/cojo/{seqid}}.log"),
+        ws_path("logs/cojo/{seqid}.log"),
     resources:
-        mem_mb=8000,
-        runtime=60,
-    run:
-        # read the loci and loop over each locus
-        with open(input.loci) as f:
-            next(f)  # Skip the header row
-            for line in f:
-                chr, beg, end = line.strip().split("\t")[:3]
-                shell(
-                """
-                source ~/.bashrc && \
-                conda activate r_finemap &&  \
-                Rscript scripts/s04_cojo_finemapping.R  \
-                --pipeline_path   {params.codes}  \
-                --dataset_aligned {input.gwas}  \
-                --study_id {params.ofile}  \
-                --chr   {chr}  \
-                --start {beg}  \
-                --end   {end}  \
-                --bfile {params.geno} \
-                --cs_thresh {params.ppp}  \
-                --outdir {output.odir} \
-                --phenotype_id full  \
-                --nf_hcoloc_v no_nf  2>> {log}
-                """
-                )
+        mem_mb=16000, runtime=120,
+    shell:
+        """
+        Rscript=`ls /conda-envs/*/bin/Rscript`;
+        $Rscript workflow/scripts/s04_cojo_finemapping.R  \
+            --pipeline_path   {params.codes}  \
+            --dataset_aligned {input.gwas}  \
+            --mapping  {params.mapping}  \
+            --study_id {params.ofile}  \
+            --chr   3 \
+            --start 26518721  \
+            --end   26742123  \
+            --bfile {params.geno}  \
+            --cs_thresh {params.ppp}  \
+            --p_thresh3 {params.p3}  \
+            --p_thresh4 {params.p4}  \
+            --maf       {params.maf}  \
+            --outdir {output.odir}  \
+            --phenotype_id full  \
+            --nf_hcoloc_v no_nf  2>> {log}
+        """
+

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name region_def
-#SBATCH --output %j_region_def_meta.log
-#SBATCH --partition cpuq
+#SBATCH --job-name cojo_abf
+#SBATCH --output %j_cojo_abf.log
+#SBATCH --partition gpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 1G
 #SBATCH --time 30-00:00:00
