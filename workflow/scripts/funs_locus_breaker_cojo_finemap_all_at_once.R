@@ -407,6 +407,8 @@ cojo.ht=function(D=dataset_aligned
                 , locus_end=opt$end
                 , p.thresh=1e-4
                 , plink.bin= "/ssu/gassu/software/plink/2.00_20211217/plink2"
+                , plink.mem=opt$plink2_mem
+                , plink.threads=opt$plink2_threads
                 , gcta.bin="/ssu/gassu/software/GCTA/1.94.0beta/gcta64"
                 , bfile="/processing_data/shared_datasets/ukbiobank/genotypes/LD_reference/p01_output/ukbb_all_30000_random_unrelated_white_british"
                 , maf.thresh=1e-4){
@@ -418,7 +420,7 @@ cojo.ht=function(D=dataset_aligned
     write(D %>% filter(CHROM==locus_chr, GENPOS >= locus_start, GENPOS <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
 # Compute allele frequency with Plink
-    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads 32 --memory 289930 'require'  --out ", random.number))
+    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
     freqs <- fread(paste0(random.number,".gcount"))
     freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
     cat("\n\nplink extracted genotypes - done!\n")

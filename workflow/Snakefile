@@ -82,6 +82,7 @@ rule run_cojo:
         ws_path("logs/cojo/{seqid}.log"),
     resources:
         runtime=lambda wc, attempt: attempt * 60,
+
     shell:
         """
         Rscript=`ls /conda-envs/*/bin/Rscript`;
@@ -111,7 +112,8 @@ rule run_cojo:
                 --maf       {params.maf}  \
                 --outdir {output.odir} \
                 --phenotype_id full  \
-                --nf_hcoloc_v no_nf  > {log}
+                --plink2_mem {resources.mem_mb}  \
+                --plink2_threads {resources.threads}  > {log}
             fi
         done < "$INPUT_FILE"
         """

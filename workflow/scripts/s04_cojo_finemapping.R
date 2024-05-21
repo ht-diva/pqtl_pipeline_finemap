@@ -20,7 +20,8 @@ option_list <- list(
   make_option("--cs_thresh", default=NULL, help="Percentage of credible set"),
   make_option("--study_id", default=NULL, help="Id of the study"),
   make_option("--outdir", default=NULL, help="Output directory"),
-  make_option("--nf_hcoloc_v", default=NULL, help="Version of nf hcoloc pipleine used, for reporting sake")
+  make_option("--plink2_mem", default=NULL, help="Amount of RAM necessary for genotype extraction"),
+  make_option("--plink2_threads", default=NULL, help="Number of threads for genotype extraction")
 );
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -33,6 +34,9 @@ locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)
 opt$chr    <- as.numeric(opt$chr)
 opt$start  <- as.numeric(opt$start) -100000
 opt$end    <- as.numeric(opt$end) + 100000
+
+# to avoid killing plink job, reduce resources
+opt$plink2_mem <- opt$plink2_mem - 512
 
 cat(paste("\nlocus is:", locus_name))
 
@@ -73,7 +77,9 @@ conditional.dataset <- cojo.ht(
   maf.thresh=as.numeric(opt$maf),
   bfile=opt$bfile,
   gcta.bin=opt$gcta_bin,
-  plink.bin=opt$plink2_bin
+  plink.bin=opt$plink2_bin,
+  plink.mem=opt$plink2_mem,
+  plink.threads=opt$plink2_threads
 )
 
 #saveRDS(conditional.dataset, file=paste0("condition_data_chr15.rds"))
