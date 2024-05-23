@@ -6,7 +6,7 @@ from snakemake.utils import min_version
 min_version("8.4.1")
 
 
-containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:ee49bec"
+containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:e4eb938"
 
 
 # read the configuration file
@@ -19,7 +19,7 @@ include: "rules/common.smk"
 rule all:
     input:
         #expand(ws_path("cojo/{seqid}"), seqid=analytes.seqid),
-        expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid)
+        expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
 
 
 rule break_locus:
