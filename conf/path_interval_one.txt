@@ -1,0 +1,1 @@
+/exchange/healthds/pQTL/results/INTERVAL/chunk_1083/chunk_1083_output/chunk_1083/results/gwas/seq.13439.6.gwas.regenie.gz
