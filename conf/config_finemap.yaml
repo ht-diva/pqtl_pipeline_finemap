@@ -1,15 +1,24 @@
 path_code: "workflow/scripts/"
 path_mapping: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz"
 path_pwas: "/exchange/healthds/pQTL/results/INTERVAL/chunk_1083/chunk_1083_output/chunk_1083/results/gwas"
-path_geno: "/home/dariush.ghasemi/projects/pqtl_pipeline_ldsc/output/plinkFormat/impute_recoded_selected_sample_filter_hq_var_chr"
+#path_geno: "/scratch/dariush.ghasemi/genotype/imputed/plinkFormat/impute_recoded_selected_sample_filter_hq_var_chr"
+path_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_selected_sample_filter_hq_var_"
 
-sumstats_path: conf/path_list_meta.txt
+sumstats_path: conf/path_meta_one.txt
 workspace_path: "results/meta"
 
 labels:
   p_label: "MLOG10P"
   chr_label: "CHR"
   pos_label: "POS"
+  snpid_label: "SNPID"
+  key_label: "PREVIOUS_ID"
+  ea_label: "EA"
+  oa_label: "NEA"
+  eaf_label: "EAF"
+  beta_label: "BETA"
+  se_label: "SE"
+  n_label: "N"
 
 thresholds:
   p1: 1.256913021618904e-11
