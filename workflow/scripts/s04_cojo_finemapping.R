@@ -8,7 +8,7 @@ option_list <- list(
   make_option("--start", default=NULL, help="Locus starting position"),
   make_option("--end", default=NULL, help="Locus ending position"),
   make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified - relevant in cases of molQTLs"),
-  make_option("--dataset_aligned", default=NULL, help="GENOME-WIDE munged and aligned dataset file"),
+  make_option("--dataset_gwas", default=NULL, help="GENOME-WIDE munged and aligned dataset file"),
   make_option("--mapping", default=NULL, help="Mapping file containing variants IDs matching with genotype bfile"),
   make_option("--p_thresh3", default=1e-04, help="Noise p-values threshold for COJO"),
   make_option("--maf", default=1e-04, help="MAF filter", metavar="character"),
@@ -21,7 +21,18 @@ option_list <- list(
   make_option("--study_id", default=NULL, help="Id of the study"),
   make_option("--outdir", default=NULL, help="Output directory"),
   make_option("--plink2_mem", default=NULL, help="Amount of RAM necessary for genotype extraction"),
-  make_option("--plink2_threads", default=NULL, help="Number of threads for genotype extraction")
+  make_option("--plink2_threads", default=NULL, help="Number of threads for genotype extraction"),
+  make_option("--p_label",   default=NULL, help="Label of P column"),
+  make_option("--chr_label", default=NULL, help="Label of CHR column"),
+  make_option("--pos_label", default=NULL, help="Label of POS column"),
+  make_option("--snpid_label", default=NULL, help="Label of SNPid column"),
+  make_option("--ea_label", default=NULL, help="Label of effect/minor allele column"),
+  make_option("--oa_label", default=NULL, help="Label of other/non-effect allele column"),
+  make_option("--eaf_label", default=NULL, help="Label of effect/minor AF column"),
+  make_option("--se_label", default=NULL, help="Label of SE column"),
+  make_option("--beta_label", default=NULL, help="Label of beta column"),
+  make_option("--n_label", default=NULL, help="Label of sample size column"),
+  make_option("--key_label", default=NULL, help="Label of SNPid column in mapping file")
 );
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -29,38 +40,49 @@ opt = parse_args(opt_parser);
 ## Source function R functions
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
+# return input value as a string
+chr.label <- sym(opt$chr_label)
+pos.label <- sym(opt$pos_label)
+snpid.label <- sym(opt$snpid_label)
+ea.label  <- sym(opt$ea_label)
+oa.label  <- sym(opt$oa_label)
+eaf.label <- sym(opt$eaf_label)
+se.label  <- sym(opt$se_label)
+n.label   <- sym(opt$n_label)
+p.label   <- sym(opt$p_label)
+key.label <- sym(opt$key_label)
+
+
 # Slightly enlarge locus by 200kb!
-locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)
+locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)  #cat(paste("\nlocus is:", locus_name))
 opt$chr    <- as.numeric(opt$chr)
-opt$start  <- as.numeric(opt$start) -100000
+opt$start  <- as.numeric(opt$start) - 100000
 opt$end    <- as.numeric(opt$end) + 100000
 
 # to avoid killing plink job, reduce resources
-opt$plink2_mem <- opt$plink2_mem - 512
+opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
 
-cat(paste("\nlocus is:", locus_name))
 
-# GWAS input
-dataset_aligned <- fread(opt$dataset_aligned, data.table=F) #%>% dplyr::filter(phenotype_id==opt$phenotype_id)
+# reading GWAS and mapping files
+dataset_gwas <- fread(opt$dataset_gwas, data.table=F)
+dataset_map  <- fread(opt$mapping, data.table=F)
 
-# Mapping file
-pwas_map <- fread(opt$mapping, data.table=F)
+cat(paste0("\nAdding original alleles from mapping to GWAS summary..."))
 
-cat("\nAdding original alleles from mapping to GWAS summary...")
 # merge map file with GWAS results
-dataset_aligned <- dataset_aligned %>%
-  select(- TEST, - EXTRA) %>%
+dataset_gwas <- dataset_gwas %>%
   # merge summary stats with map file. Then, SNP id matches with genotype file
-  left_join(pwas_map, by = c("ID" = "PREVIOUS_ID")) %>%
+  left_join(dataset_map, join_by(!!snpid.label == !!key.label)) %>%
   dplyr::mutate(
-    snp_map = ID, # workflow needs it to report cojo results
-    sdY = coloc:::sdY.est(SE, A1FREQ, N),
+    snp_map = !!snpid.label, # to report cojo results
+    sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
+    #sdY = coloc:::sdY.est(SE, EAF, N),
     type = paste0('quant')
   ) %>%
-  rename(SNP = ID) #to be used by COJO to merge with genotype
+  rename(SNP = !!snpid.label) #to be used by COJO to merge with genotype
 
 
-cat("done.")
+cat(paste0("done."))
 
 ###############
 # Perform cojo
@@ -69,26 +91,35 @@ cat("done.")
 cat(paste0("\nRun COJO...\n\n"))
 # Break dataframe in list of single rows
 conditional.dataset <- cojo.ht(
-  D=dataset_aligned,
-  locus_chr=opt$chr,
-  locus_start=opt$start,
-  locus_end=opt$end,
-  p.thresh=as.numeric(opt$p_thresh3),
-  maf.thresh=as.numeric(opt$maf),
-  bfile=opt$bfile,
-  gcta.bin=opt$gcta_bin,
-  plink.bin=opt$plink2_bin,
-  plink.mem=opt$plink2_mem,
-  plink.threads=opt$plink2_threads
+  D = dataset_gwas,
+  chr.label = opt$chr_label,
+  pos.label = opt$pos_label,
+  ea.label = opt$ea_label,
+  oa.label = opt$oa_label,
+  eaf.label = opt$eaf_label, 
+  se.label = opt$se_label, 
+  beta.label = opt$beta_label, 
+  n.label = opt$n_label,
+  p.label = opt$p_label,
+  locus_chr = opt$chr,
+  locus_start = opt$start,
+  locus_end = opt$end,
+  p.thresh = as.numeric(opt$p_thresh3),
+  maf.thresh = as.numeric(opt$maf),
+  bfile = opt$bfile,
+  gcta.bin = opt$gcta_bin,
+  plink.bin = opt$plink2_bin,
+  plink.mem = opt$plink2_mem,
+  plink.threads = opt$plink2_threads
 )
 
-#saveRDS(conditional.dataset, file=paste0("condition_data_chr15.rds"))
+saveRDS(conditional.dataset, file=paste0("conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
 dir.create(paste0(opt$outdir), recursive = TRUE)
 #pdf(paste0(opt$study_id, "_locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) ### have the original loci boundaries in the name, or the slightly enlarged ones?
-png(paste0(opt$study_id, "_locus_chr", locus_name, "_conditioned_loci.png"), res = 300, units = "in", height=3.5*nrow(conditional.dataset$ind.snps)+2, width=10)
+png(paste0(opt$study_id, "_locus_chr", locus_name, "_conditioned_loci.png"), res = 300, units = "in", height=6.5, width=10)
 plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 dev.off()
 
@@ -106,12 +137,12 @@ conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
   if(isTRUE(any(x %>% pull(pC) > -log10(opt$p_thresh4)))){
     new_bounds <- locus.breaker.p(
       x,
-      p.sig    = as.numeric(opt$p_thresh4),
-      p.limit  = as.numeric(opt$p_thresh3),
-      hole.size= opt$hole,
-      p.label  = "pC",
-      chr.label= "Chr",
-      pos.label= "bp")
+      p.sig = as.numeric(opt$p_thresh4),
+      p.limit = as.numeric(opt$p_thresh3),
+      hole.size = opt$hole,
+      p.label = "pC",
+      chr.label = "Chr",
+      pos.label = "bp")
 
     # Slightly enlarge locus by 200kb!
     new_bounds <- new_bounds %>% dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
@@ -126,7 +157,7 @@ cat(paste0("done."))
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 
-#saveRDS(conditional.dataset, file=paste0("condition_data_chr15_up", ".rds"))
+saveRDS(conditional.dataset, file=paste0("conditional_data_", locus_name, "_up.rds"))
 
 
 

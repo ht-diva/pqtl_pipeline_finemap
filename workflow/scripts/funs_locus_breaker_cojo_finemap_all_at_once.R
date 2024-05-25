@@ -401,7 +401,7 @@ locus.breaker <- function(
 
 ### cojo.ht ###
 ### Performs --cojo-slct first to identify all independent SNPs and --cojo-cond then to condition upon identified SNPs
-cojo.ht=function(D=dataset_aligned
+cojo.ht=function(D=dataset_gwas
                 , locus_chr=opt$chr
                 , locus_start=opt$start
                 , locus_end=opt$end
@@ -411,16 +411,36 @@ cojo.ht=function(D=dataset_aligned
                 , plink.threads=opt$plink2_threads
                 , gcta.bin="/ssu/gassu/software/GCTA/1.94.0beta/gcta64"
                 , bfile="/processing_data/shared_datasets/ukbiobank/genotypes/LD_reference/p01_output/ukbb_all_30000_random_unrelated_white_british"
-                , maf.thresh=1e-4){
-
-  random.number=stri_rand_strings(n=1, length=20, pattern = "[A-Za-z0-9]")
-#"/ssu/gassu/software/plink/2.00_20211217/plink2"
+                , maf.thresh=1e-4
+                , chr.label=opt$chr_label
+                , pos.label=opt$pos_label
+                , ea.label=opt$ea_label
+                , oa.label=opt$oa_label
+                , eaf.label=opt$eaf_label
+                , se.label=opt$se_labelsb
+                , beta.label=opt$beta_label
+                , n.label=opt$n_label
+                , p.label=opt$p_label
+                ){
+    
+    chr.label <- sym(opt$chr_label)
+    pos.label <- sym(opt$pos_label)
+    ea.label  <- sym(opt$ea_label)
+    oa.label  <- sym(opt$oa_label)
+    eaf.label <- sym(opt$eaf_label)
+    se.label  <- sym(opt$se_label)
+    beta.label <- sym(opt$beta_label)
+    n.label   <- sym(opt$n_label)
+    p.label   <- sym(opt$p_label)
+    
+    random.number=stri_rand_strings(n=1, length=20, pattern = "[A-Za-z0-9]")
+    
 ### Produce two snp.lists: 1) all SNPs to compute allele frequency, 2) only snps included in the locus
     write(D$SNP, ncol=1,file=paste0(random.number,".snp.list"))
-    write(D %>% filter(CHROM==locus_chr, GENPOS >= locus_start, GENPOS <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
+    write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
 # Compute allele frequency with Plink
-    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+    system(paste0(plink.bin," --pfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
     freqs <- fread(paste0(random.number,".gcount"))
     freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
     cat("\n\nplink extracted genotypes - done!\n")
@@ -428,8 +448,9 @@ cojo.ht=function(D=dataset_aligned
 # Assign allele frequency from the LD reference
     D <- D %>%
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
-      mutate(FREQ=ifelse(REF==ALLELE0, FreqREF, (1-FreqREF))) %>%
-      dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
+      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% #!!eaf.label
+      #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
@@ -477,7 +498,7 @@ cojo.ht=function(D=dataset_aligned
       system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
-        left_join(D %>% dplyr::select(SNP,ALLELE0, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"="ALLELE0"))
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- rbind.fill(
@@ -496,7 +517,13 @@ cojo.ht=function(D=dataset_aligned
     # Remove results df possibly empty (in case of collinearity issue)
     dataset.list$results <- dataset.list$results %>% discard(is.null)
   }
-  system(paste0("rm *",random.number,"*"))
+
+  # make directory to save the files
+  locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
+  system(paste0("mkdir ", locus))
+  system(paste0("mv *",random.number,"* ", locus))
+
+  #system(paste0("rm *",random.number,"*"))
   if(exists("dataset.list")){return(dataset.list)}
 }
 
