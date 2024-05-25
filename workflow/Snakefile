@@ -18,7 +18,7 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        #expand(ws_path("cojo/{seqid}"), seqid=analytes.seqid),
+        expand(ws_path("cojo/{seqid}"), seqid=analytes.seqid),
         expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid)
 
 
@@ -78,11 +78,22 @@ rule run_cojo:
         p3=config.get("thresholds").get("p3"),
         p4=config.get("thresholds").get("p4"),
         maf=config.get("thresholds").get("maf"),
+        p_label=config.get("labels").get("p_label"),
+        chr_label=config.get("labels").get("chr_label"),
+        pos_label=config.get("labels").get("pos_label"),
+        snpid_label=config.get("labels").get("snpid_label"),
+        key_label=config.get("labels").get("key_label"),
+        ea_label=config.get("labels").get("ea_label"),
+        oa_label=config.get("labels").get("oa_label"),
+        eaf_label=config.get("labels").get("eaf_label"),
+        se_label=config.get("labels").get("se_label"),
+        beta_label=config.get("labels").get("beta_label"),
+        n_label=config.get("labels").get("n_label"),
     log:
         ws_path("logs/cojo/{seqid}.log"),
     resources:
         runtime=lambda wc, attempt: attempt * 60,
-
+        mem_mb=lambda wc, attempt: 8000 + attempt * 2048
     shell:
         """
         Rscript=`ls /conda-envs/*/bin/Rscript`;
@@ -99,7 +110,7 @@ rule run_cojo:
             if [[ "$chr" != "chr" ]]; then
                 Rscript workflow/scripts/s04_cojo_finemapping.R  \
                 --pipeline_path   {params.codes}  \
-                --dataset_aligned {input.gwas}  \
+                --dataset_gwas {input.gwas}  \
                 --mapping  {params.mapping}  \
                 --study_id {params.ofile}  \
                 --chr   "$chr"  \
@@ -113,7 +124,18 @@ rule run_cojo:
                 --outdir {output.odir} \
                 --phenotype_id full  \
                 --plink2_mem {resources.mem_mb}  \
-                --plink2_threads {resources.threads}  > {log}
+                --plink2_threads {threads} \
+                --p_label   {params.p_label} \
+                --chr_label {params.chr_label} \
+                --pos_label {params.pos_label} \
+                --snpid_label {params.snpid_label} \
+                --ea_label {params.ea_label} \
+                --oa_label {params.oa_label} \
+                --eaf_label {params.eaf_label} \
+                --se_label {params.se_label} \
+                --beta_label {params.beta_label} \
+                --n_label {params.n_label} \
+                --key_label {params.key_label} > {log}
             fi
         done < "$INPUT_FILE"
         """
