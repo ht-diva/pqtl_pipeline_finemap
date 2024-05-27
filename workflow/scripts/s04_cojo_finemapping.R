@@ -113,13 +113,13 @@ conditional.dataset <- cojo.ht(
   plink.threads = opt$plink2_threads
 )
 
-saveRDS(conditional.dataset, file=paste0("conditional_data_", locus_name, ".rds"))
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
 dir.create(paste0(opt$outdir), recursive = TRUE)
-#pdf(paste0(opt$study_id, "_locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) ### have the original loci boundaries in the name, or the slightly enlarged ones?
-png(paste0(opt$study_id, "_locus_chr", locus_name, "_conditioned_loci.png"), res = 300, units = "in", height=6.5, width=10)
+#pdf(paste0(opt$study_id, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) ### have the original loci boundaries in the name, or the slightly enlarged ones?
+png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), res = 300, units = "in", height=6.5, width=10)
 plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 dev.off()
 
@@ -157,7 +157,7 @@ cat(paste0("done."))
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 
-saveRDS(conditional.dataset, file=paste0("conditional_data_", locus_name, "_up.rds"))
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 
 
