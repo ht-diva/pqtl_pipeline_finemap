@@ -443,12 +443,11 @@ cojo.ht=function(D=dataset_gwas
     system(paste0(plink.bin," --pfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
     freqs <- fread(paste0(random.number,".gcount"))
     freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
-    cat("\n\nplink extracted genotypes - done!\n")
 
 # Assign allele frequency from the LD reference
     D <- D %>%
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
-      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% #!!eaf.label
+      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% #!!eaf.label -- NO need to compare the alleles
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
       dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
