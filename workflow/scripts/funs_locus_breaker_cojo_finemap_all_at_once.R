@@ -450,7 +450,7 @@ cojo.ht=function(D=dataset_gwas
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% #!!eaf.label
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
-      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
