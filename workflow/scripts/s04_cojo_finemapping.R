@@ -65,21 +65,21 @@ opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
 
 # reading GWAS and mapping files
 dataset_gwas <- fread(opt$dataset_gwas, data.table=F)
-dataset_map  <- fread(opt$mapping, data.table=F)
+#dataset_map  <- fread(opt$mapping, data.table=F)
 
 cat(paste0("\nAdding original alleles from mapping to GWAS summary..."))
 
 # merge map file with GWAS results
 dataset_gwas <- dataset_gwas %>%
   # merge summary stats with map file. Then, SNP id matches with genotype file
-  left_join(dataset_map, join_by(!!snpid.label == !!snpid.label)) %>%
+  #left_join(dataset_map, join_by(!!snpid.label == !!snpid.label)) %>%
   dplyr::mutate(
     snp_map = !!snpid.label, # to report cojo results
     sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
     #sdY = coloc:::sdY.est(SE, EAF, N),
     type = paste0('quant')
   ) %>%
-  rename(SNP = !!key.label) #to be used by COJO to merge with genotype
+  rename(SNP = !!snpid.label) #to be used by COJO to merge with genotype
 
 
 cat(paste0("done."))
