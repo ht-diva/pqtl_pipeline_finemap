@@ -1,1 +1,3 @@
 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq.13439.6/seq.13439.6.gwaslab.tsv.gz
+/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq.13438.115/seq.13438.115.gwaslab.tsv.gz
+/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq.13435.31/seq.13435.31.gwaslab.tsv.gz
