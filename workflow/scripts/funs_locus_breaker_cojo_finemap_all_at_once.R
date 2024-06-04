@@ -440,21 +440,22 @@ cojo.ht=function(D=dataset_gwas
     write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
 # Compute allele frequency with Plink
-    system(paste0(plink.bin," --pfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
     freqs <- fread(paste0(random.number,".gcount"))
     freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
 
 # Assign allele frequency from the LD reference
     D <- D %>%
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
-      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% #!!eaf.label -- NO need to compare the alleles
+      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # NO need to compare the alleles -- if use FREQ or FreqREF rather than !!eaf.label, we get empty bC, bC_SE and pC in COJO *_step1.cma.cojo
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
-      dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
 # step1 determine independent snps
   system(paste0(gcta.bin," --bfile ", random.number, " --cojo-p ", p.thresh, " --maf ", maf.thresh, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
+  # system(paste0(gcta.bin," --bfile ", bfile, locus_chr, " --cojo-p ", p.thresh, " --maf ", maf.thresh, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
