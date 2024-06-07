@@ -54,7 +54,9 @@ key.label <- sym(opt$key_label)
 
 
 # Slightly enlarge locus by 200kb!
-locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)  #cat(paste("\nlocus is:", locus_name))
+locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end) 
+cat(paste("\nlocus is:", locus_name))
+
 opt$chr    <- as.numeric(opt$chr)
 opt$start  <- as.numeric(opt$start) - 100000
 opt$end    <- as.numeric(opt$end) + 100000
@@ -79,8 +81,8 @@ dataset_gwas <- dataset_gwas %>%
     #sdY = coloc:::sdY.est(SE, EAF, N),
     type = paste0('quant')
   ) %>%
-  rename(SNP = !!snpid.label) #to be used by COJO to merge with genotype
-
+  #rename(SNP = !!key.label) #to be used by COJO to merge with genotype
+  rename(SNP = !!snpid.label)
 
 cat(paste0("done."))
 
