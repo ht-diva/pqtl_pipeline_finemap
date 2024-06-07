@@ -2,9 +2,10 @@ path_code: "workflow/scripts/"
 path_mapping: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz"
 path_pwas: "/exchange/healthds/pQTL/results/INTERVAL/chunk_1083/chunk_1083_output/chunk_1083/results/gwas"
 #path_geno: "/scratch/dariush.ghasemi/genotype/imputed/plinkFormat/impute_recoded_selected_sample_filter_hq_var_chr"
-path_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_selected_sample_filter_hq_var_"
+#path_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_selected_sample_filter_hq_var_"
+path_geno: "/scratch/dariush.ghasemi/projects/genomics_QC_pipeline/results/updated_snpid/chr"
 
-sumstats_path: conf/path_meta_one.txt
+sumstats_path: conf/path_meta_ten.txt
 workspace_path: "results/meta"
 
 labels:
