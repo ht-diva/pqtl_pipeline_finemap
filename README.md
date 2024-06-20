@@ -55,4 +55,37 @@ conda deactivate
 ls -1 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq*/seq*.gwaslab.tsv.gz > conf/path_list_meta.txt
 ```
 
+```bash
+
+# mapping files
+head mapping_chr6.txt
+zcat /exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz
+
+# Gcount
+cat ThicxTShY15uHN8Y6S44_sum.txt | grep 6:32561656
+
+# Metal
+zcat /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq.13435.31/seq.13435.31.gwaslab.tsv.gz
+
+# subset genotype
+cat 6_31305620_32886291/ThicxTShY15uHN8Y6S44.bim | grep 6:32561656
+
+# PGEN
+cat /exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_selected_sample_filter_hq_var_6.pvar
+
+# remove old results
+rm -r results/meta/cojo/seq.13435.31/
+rm results/meta/cojo/seq.13435.31_locus_chr6_31405620_32786291_ind_snps.tsv 
+rm results/meta/logs/cojo/seq.13435.31.log
+
+```
+
+# Next-Flow pipeline for evaluation of the results
+`/ssu/bsssu/dariush_coloc/testing_nf_pipeline`
+
+- Permissions are granted to allow modifying the R scripts.
+
+- Verifying the results using GLM model (Thu, 03:12, 18 to 20-Jun-23).
+
+
 Dariush
