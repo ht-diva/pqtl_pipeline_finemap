@@ -87,5 +87,7 @@ rm results/meta/logs/cojo/seq.13435.31.log
 
 - Verifying the results using GLM model (Thu, 03:12, 18 to 20-Jun-23).
 
+- Computing LD and converting to matrix format for running SUSIE (Fri, 23:37, 21-Jun-24).
+
 
 Dariush
