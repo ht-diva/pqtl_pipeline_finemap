@@ -19,7 +19,8 @@ include: "rules/common.smk"
 rule all:
     input:
         expand(ws_path("cojo/{seqid}/sentinel.txt"), seqid=analytes.seqid),
-        expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid)
+        #expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid)
+        ws_path("break/collected_loci_excluding_mhc.csv")
 
 
 rule break_locus:
@@ -58,6 +59,20 @@ rule break_locus:
             --chr_label {params.chr_label} \
             --pos_label {params.pos_label} > {log}
         """
+
+
+rule collect_loci:
+    input:
+        expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
+    output:
+        ofile=ws_path("break/collected_loci_excluding_mhc.csv"),
+    conda:
+        "envs/r_environment.yml"
+    resources:
+        runtime=lambda wc, attempt: attempt * 30,
+    script:
+        "scripts/s02_collect_loci.R"
+
 
 
 rule run_cojo:
