@@ -230,7 +230,9 @@ cojo.ht=function(D=dataset_gwas
     write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
 # Compute allele frequency with Plink
-    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+    #system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+
     freqs <- fread(paste0(random.number,".gcount"))
     freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
 
@@ -286,7 +288,8 @@ cojo.ht=function(D=dataset_gwas
       ### NB: COJO here is performed ONLY for formatting sakes - No need to condition if only one signal is found!!
 
       write(ind.snp$SNP,ncol=1,file=paste0(random.number,"_independent.snp"))
-      system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      #system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
