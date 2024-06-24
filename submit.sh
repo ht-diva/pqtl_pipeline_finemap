@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --job-name locojo
-#SBATCH --output %j_locus_meta.log
+#SBATCH --output %j_break_cojo_meta.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
-#SBATCH --mem 1G
+#SBATCH --mem 4G
 #SBATCH --time 30-00:00:00
 
 source ~/.bashrc
