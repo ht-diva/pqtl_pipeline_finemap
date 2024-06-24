@@ -185,8 +185,6 @@ locus.breaker <- function(
   return(trait.res)
 }
 
-# Extract with tabix and load-in
-  system(paste0(opt$tabix_bin, " -h -D ", mappa," -R ", study_id, "_chr", chr_tabix, "_snplist.tsv > ", study_id, "_chr", chr_tabix, "_map.tsv"))
 
 
 ### cojo.ht ###
@@ -238,6 +236,7 @@ cojo.ht=function(D=dataset_gwas
 
 # Assign allele frequency from the LD reference
     D <- D %>%
+      filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% #bounding the GWAS to variants only falling at the locus solves the problem of phenotipc variance = 0 by GCTA-cojo
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # NO need to compare the alleles -- if use FREQ or FreqREF rather than !!eaf.label, we get empty bC, bC_SE and pC in COJO *_step1.cma.cojo
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
@@ -313,9 +312,9 @@ cojo.ht=function(D=dataset_gwas
   }
 
   # make directory to save the files
-  #locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
-  #system(paste0("mkdir ", locus))
-  #system(paste0("mv *",random.number,"* ", locus))
+  # locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
+  # system(paste0("mkdir ", locus))
+  # system(paste0("mv *",random.number,"* ", locus))
 
   system(paste0("rm *",random.number,"*"))
   if(exists("dataset.list")){return(dataset.list)}
