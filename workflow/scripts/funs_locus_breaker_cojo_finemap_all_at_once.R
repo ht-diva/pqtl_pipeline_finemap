@@ -23,218 +23,6 @@ suppressMessages(library(dplyr))
 
 
 
-### dataset.munge ###
-dataset.munge_hor=function(sumstats.file
-                       ,snp.lab="SNP"
-                       ,chr.lab="CHR"
-                       ,pos.lab="BP"
-                       ,a1.lab="A1"
-                       ,a0.lab="A2"
-                       ,beta.lab="BETA"
-                       ,se.lab="SE"
-                       ,pval.lab="P"
-                       ,freq.lab="FRQ"
-                       ,n.lab="N"
-                       ,type=NULL
-                       ,sdY=NULL
-                       ,s=NULL
-){
-
-  # Load sumstat
-  if(is.character(sumstats.file)){
-    dataset=fread(sumstats.file, data.table=F)
-  }else{
-    dataset=as.data.frame(sumstats.file)
-  }
-
-  if(!is.null(a1.lab) & a1.lab%in%names(dataset) & !is.null(a0.lab) & a0.lab%in%names(dataset) ){
-    names(dataset)[match(c(a1.lab,a0.lab),names(dataset))]=c("A1","A2")
-  }else{
-    stop("a0.lab or a1.lab have not been defined or the column is missing")
-  }
-  if(!is.null(beta.lab)& beta.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==beta.lab]="BETA"
-  }else{
-    stop("beta.lab has not been defined or the column is missing")
-  }
-
-  if(!is.null(snp.lab) & snp.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==snp.lab]="SNP"
-  }else{
-    stop("snp.lab has not been defined or the column is missing")
-  }
-
-  if(!is.null(se.lab) & se.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==se.lab]="SE"
-  }else{
-    stop("se.lab has not been defined or the column is missing")
-  }
-
-  if(!is.null(chr.lab) & chr.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==chr.lab]="CHR"
-    dataset$CHR <- as.numeric(dataset$CHR) ### set as numeric, can't merge columns of different classes
-    dataset <- dataset %>% dplyr::filter(CHR %in% c(1:22))
-  }else{
-    dataset$CHR=map$CHR[match(dataset$SNP,map$SNP)]
-  }
-
-  if(!is.null(pos.lab) & pos.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==pos.lab]="BP"
-    dataset$BP <- as.numeric(dataset$BP) ### set as numeric, can't merge columns of different classes
-  }else{
-    dataset$BP=map$BP[match(dataset$SNP,map$SNP)]
-  }
-
-  if(!is.null(freq.lab) & freq.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==freq.lab]="FRQ"
-  }else{
-    #    dataset$FRQ=map$MAF[match(dataset$SNP,map$SNP)]
-    stop("For the moment, frequency of effect allele MUST be provided in the GWAS summary statistics!\n", call.=FALSE)
-
-    ### You should be able to calculate frequency from the bfiles provided (either default or custom). PROBLEM is that at this stage the SNP ids of GWAS and bfiles are still not matching! bfiles ones in fact should be the same of the map
-    ### Find a way to fix this!
-  }
-
-  if("FRQ" %in% colnames(dataset)){
-    dataset$MAF=dataset$FRQ
-    dataset <- dataset %>% mutate(MAF=ifelse(MAF<0.5, MAF, 1-MAF))
-  }
-
-  if(!is.null(n.lab) & n.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==n.lab]="N"
-  } else {
-    N_hat<-median(1/((2*dataset$MAF*(1-dataset$MAF))*dataset$SE^2),na.rm = T)
-    dataset$N=ceiling(N_hat)
-  }
-
-  if(!is.null(pval.lab) & pval.lab%in%names(dataset)){
-    names(dataset)[names(dataset)==pval.lab]="P"
-    dataset$P <- as.numeric(dataset$P)
-### Remove NA p-values
-    dataset <- dataset %>% dplyr::filter(!is.na(P))
-    ### Check if p-value column provided is log10 transformed. If yes, compute original p-value
-    if (!all(dataset$P >= 0 & dataset$P <= 1)) {
-      dataset <- dataset %>% mutate(P=10^(-P))
-    }
-  } else {
-    dataset$P=pchisq((dataset$BETA/dataset$SE)^2,df=1,lower=F)
-  }
-  # Add variance of beta
-  dataset$varbeta=dataset$SE^2
-
-  # Add type and sdY/s
-  dataset$type <- type
-  if(type=="cc" & !(is.null(s)) && !is.na(s)){ # && prevents to return "logical(0)" when s is null
-    dataset$s=s
-  } else if(type=="cc" & (is.null(s) || is.na(s))){
-    #### Is this correct?? Is "s" strictly necessary for cc traits??
-    stop("Please provide s, the proportion of samples who are cases")
-  }
-
-  if(type=="quant" & !(is.null(sdY)) && !is.na(sdY) && sdY != "NA"){
-    dataset$sdY <- sdY
-  } else if(type=="quant" & (is.null(sdY) || is.na(sdY) || sdY != "NA")){ #### Gives back "logical(0)" - FIX!! Append sdY to the dataset table, even if null
-    dataset <- as.data.frame(dataset %>%
-      dplyr::group_by(phenotype_id) %>%
-      dplyr::mutate(sdY=coloc:::sdY.est(varbeta, MAF, N)))
-  }
-# Remove all rows with NAs - won't this be too much?
-  dataset <- na.omit(dataset)
-  dataset <- dataset %>% arrange(CHR, BP)
-  dataset
-}
-
-
-
-
-
-### dataset.align ###
-dataset.align <- function(dataset,
-                          study_id="example_study",
-                          mappa,
-                          chr_tabix=22,
-                          tabix_bin="/ssu/gassu/software/htslib-tools/1.14/tabix",
-                          grch=38){
-
-# Load munged dataset sumstat in .rds format (if necessary)
-  if(is.character(dataset)){
-    dataset_munged <- fread(dataset, data.table=F)
-  }else{
-    dataset_munged <- as.data.frame(dataset)
-  }
-
-# Filter GWAS by chromosome
-  dataset_sub <- dataset_munged %>% dplyr::filter(CHR==chr_tabix)
-
-# Prepare SNPs extraction list
-  flip <- dataset_sub %>% dplyr::select("SNP","CHR","BP","A2","A1","BETA", "phenotype_id")
-  names(flip) <- c("rsid","chr","pos","a0","a1","beta", "phenotype_id")
-
-  flip %>%
-    arrange(pos) %>%
-    dplyr::mutate(chr=paste0("chr", chr_tabix)) %>%
-    dplyr::select(chr, pos) %>%
-# No need to list the same chromosome and positione more than once
-    distinct() %>%
-    fwrite(paste0(study_id, "_chr", chr_tabix, "_snplist.tsv"), quote=F, sep="\t", na=NA, col.names = F)
-
-# Extract with tabix and load-in
-  system(paste0(opt$tabix_bin, " -h -D ", mappa," -R ", study_id, "_chr", chr_tabix, "_snplist.tsv > ", study_id, "_chr", chr_tabix, "_map.tsv"))
-
-# Load local map and format
-  map <- fread(paste0(study_id, "_chr", chr_tabix, "_map.tsv"), data.table=F) %>%
-    dplyr::select("#chromosome", contains(as.character(grch)))
-  names(map) <- c("chr","pos", "rsid")
-  map <- map %>%
-    mutate(
-      chr=gsub("chr", "", chr),
-      a1=gsub("chr\\d+:\\d+:(\\w+):(\\w+)", "\\1", rsid),
-      a0=gsub("chr\\d+:\\d+:(\\w+):(\\w+)", "\\2", rsid)
-    ) %>% dplyr::select(rsid,chr,pos,a1,a0)
-  map$chr <- as.numeric(map$chr)
-
-# Remove both occurrences of SNPs having same position and same, inverted alleles
-  map <- as.data.frame(
-      map %>%
-      rowwise() %>%
-      mutate(alleles=paste0(sort(c(a1,a0)), collapse = "_")) %>%
-      add_count(chr,pos,alleles) %>%
-      filter(n==1) %>%
-      select(-alleles, -n)
-    )
-
-# Remove temporary files
-# system(paste0("rm ", study_id, "*"))
-
-# Finally - alleles alignment
-  flip.t <- snp_match(
-    sumstats=flip,
-    info_snp=map,
-    remove_dups=FALSE,
-    join_by_pos=TRUE,
-    strand_flip=FALSE,
-    match.min.prop=0)
-
-  flip <- flip[flip.t$`_NUM_ID_.ss`,]
-  flip$snp_map <- flip.t$rsid ### add SNP is from map
-
-# Keep only aligned SNPs!
-  dataset_sub <- dataset_sub %>% semi_join(flip, by=c("SNP"="rsid", "phenotype_id"))
-
-# Keep both original and map SNP id
-  dataset_sub$snp_map <- flip$snp_map
-  dataset_sub$A1=flip.t$a1
-  dataset_sub$A2=flip.t$a0
-  dataset_sub$b=flip.t$beta
-
-# Rename columns
-  dataset_sub <- dataset_sub %>%
-      dplyr::select("snp_map","SNP","CHR","BP","A1","A2","b","varbeta","SE","P","MAF","N","type",any_of(c("s", "sdY")), "phenotype_id") %>%
-      rename(se=SE, p=P)
-
-  return(dataset_sub)
-}
-
 
 
 ### locus.breaker
@@ -397,6 +185,8 @@ locus.breaker <- function(
   return(trait.res)
 }
 
+# Extract with tabix and load-in
+  system(paste0(opt$tabix_bin, " -h -D ", mappa," -R ", study_id, "_chr", chr_tabix, "_snplist.tsv > ", study_id, "_chr", chr_tabix, "_map.tsv"))
 
 
 ### cojo.ht ###
@@ -520,11 +310,11 @@ cojo.ht=function(D=dataset_gwas
   }
 
   # make directory to save the files
-  locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
-  system(paste0("mkdir ", locus))
-  system(paste0("mv *",random.number,"* ", locus))
+  #locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
+  #system(paste0("mkdir ", locus))
+  #system(paste0("mv *",random.number,"* ", locus))
 
-  #system(paste0("rm *",random.number,"*"))
+  system(paste0("rm *",random.number,"*"))
   if(exists("dataset.list")){return(dataset.list)}
 }
 
