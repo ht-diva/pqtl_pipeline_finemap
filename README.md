@@ -52,7 +52,7 @@ conda deactivate
 
 - Testing the pipeline on the meta-analysis results modified by GWASLab (Sat, 16:46, 11-May-24).
 ```bash
-ls -1 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq*/seq*.gwaslab.tsv.gz > conf/path_list_meta.txt
+ls -1 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped/output/seq*/seq*.gwaslab.tsv.bgz > conf/path_meta_all.txt
 ```
 
 ```bash
@@ -89,5 +89,8 @@ rm results/meta/logs/cojo/seq.13435.31.log
 
 - Computing LD and converting to matrix format for running SUSIE (Fri, 23:37, 21-Jun-24).
 
+- Susie was successfully run on the example protein and finally three causal variants were identified (Sunday, 16:46, 24-Jun-24).
+
+- Lunching the locus breaker and COJO on the latest meta-analysis results (Mon, 23:55, 24-Jun-24)
 
 Dariush
