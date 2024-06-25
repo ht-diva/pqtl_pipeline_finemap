@@ -237,6 +237,7 @@ cojo.ht=function(D=dataset_gwas
 # Assign allele frequency from the LD reference
     D <- D %>%
       filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% #bounding the GWAS to variants only falling at the locus solves the problem of phenotipc variance = 0 by GCTA-cojo
+      dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # NO need to compare the alleles -- if use FREQ or FreqREF rather than !!eaf.label, we get empty bC, bC_SE and pC in COJO *_step1.cma.cojo
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
@@ -251,6 +252,7 @@ cojo.ht=function(D=dataset_gwas
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
     ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
+      mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s"))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
@@ -272,6 +274,7 @@ cojo.ht=function(D=dataset_gwas
         } else {
           # Re-add type and sdY/s info, and map SNPs!
           step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
+            dplyr::mutate(SNP = as.character(SNP)) %>%  # to ensure class of joint column is the same
             left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s"))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
@@ -291,6 +294,7 @@ cojo.ht=function(D=dataset_gwas
       system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
+        dplyr::mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
