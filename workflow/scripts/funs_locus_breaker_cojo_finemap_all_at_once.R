@@ -294,7 +294,7 @@ cojo.ht=function(D=dataset_gwas
       system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
-        dplyr::mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
+        dplyr::mutate(SNP = as.character(SNP), refA = as.character(refA)) %>% # to ensure class of joint column is the same
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
