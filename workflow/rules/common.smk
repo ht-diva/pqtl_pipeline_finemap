@@ -9,7 +9,7 @@ with open(config["sumstats_path"], "r") as fp:
 
 for line in lines:
     p = Path(line.strip())
-    seqid = ".".join(p.stem.split(".")[:3])
+    seqid = ".".join(p.stem.split(".")[:3]) #seqid = p.stem.split("_")[3]
     data.append((seqid, str(p)))
 
 analytes = (
