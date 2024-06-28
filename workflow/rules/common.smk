@@ -27,6 +27,3 @@ def get_sumstats(wildcards):
 def ws_path(file_path):
     return str(Path(config.get("workspace_path"), file_path))
 
-
-def ss_path(file_path):
-    return str(Path(config.get("path_pwas"), file_path))
