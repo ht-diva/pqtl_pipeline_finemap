@@ -7,7 +7,7 @@ rule run_cojo:
         sentinel=ws_path("cojo/{seqid}/sentinel.txt"),
         log=ws_path("logs/cojo/{seqid}.log"),
     conda:
-        "envs/r_environment.yml"
+        "../envs/r_environment.yml"
     params:
         codes=config.get("path_code"),
         geno=config.get("path_geno"),
@@ -50,10 +50,10 @@ rule run_cojo:
 
             # Skip the first line then run the script
             if [[ "$chr" != "chr" ]]; then
-                Rscript workflow/scripts/s03_cojo_finemapping.R  \
+                Rscript ../scripts/s03_cojo_finemapping.R  \
                 --pipeline_path   {params.codes}  \
                 --dataset_gwas {input.gwas}  \
-                --study_id {params.ofile}  \
+                --phenotype_id {params.ofile}  \
                 --chr   "$chr"  \
                 --start "$beg"  \
                 --end   "$end"  \
@@ -63,7 +63,6 @@ rule run_cojo:
                 --p_thresh4 {params.p4}  \
                 --maf       {params.maf}  \
                 --outdir {params.ofile} \
-                --phenotype_id full  \
                 --plink2_mem {resources.mem_mb}  \
                 --plink2_threads {threads} \
                 --chr_label {params.chr_label} \
