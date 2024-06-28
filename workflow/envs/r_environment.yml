@@ -13,14 +13,7 @@ dependencies: #R>=4.3
   - r-R.utils=2.12.3
   - r-coloc=5.2.3
   - r-cowplot=1.1.3
-  - r-corrplot=0.92
   - r-bigsnpr=1.12.2
   - r-stringi=1.8.3
   - r-patchwork=1.2.0
-  - r-plyr=1.8.9
-  - r-reshape2=1.4.4
-  - r-RColorBrewer=1.1-3
-  - r-igraph=2.0.2
-  - r-Matrix=1.6-5
-  - bioconductor-Gviz=1.46.1
-  - bioconductor-EnsDb.Hsapiens.v75=2.99.0
+
