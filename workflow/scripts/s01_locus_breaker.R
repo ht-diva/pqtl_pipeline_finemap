@@ -6,7 +6,7 @@ option_list <- list(
   make_option("--p_thresh1", default=5e-08, help="Significant p-value threshold for top hits"),
   make_option("--p_thresh2", default=1e-05, help="P-value threshold for loci borders"),
   make_option("--hole", default=250000, help="Minimum pair-base distance between SNPs in different loci"),
-  make_option("--study_id", default=NULL, help="Id of the study"),
+  make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified"),
   make_option("--outdir", default=NULL, help="Output directory"),
   make_option("--p_label", default=NULL, help="Label of P column"),
   make_option("--chr_label", default=NULL, help="Label of CHR column"),
@@ -41,6 +41,12 @@ cat("done!\n")
 
 cat(paste0("\n\nDefining locus..."))
 
+# Define a function to create a flag file indicating completion
+create_flag_file <- function(outdir) {
+  flag_file <- paste0(outdir, "_completed.flag")
+  file.create(flag_file)
+}
+
 # function to find the index variants at each locus
 check_signif <- function(x){
   ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
@@ -68,10 +74,13 @@ loci_list <- check_signif(gwas)
 cat(paste0("done!\n\nSaving index variants..."))
 
 ### Add study ID to the loci table. Save
-loci_list$study_id <- opt$study_id
-
+loci_list$phenotype_id <- opt$phenotype_id
 fwrite(loci_list, paste0(opt$outdir, "_loci.csv"), sep=",", quote=F, na=NA)
+
 cat(paste0("done!\n"))
 
-cat(paste0("\n", nrow(loci_list), " significant loci identified for ", opt$study_id, "\n"))
+cat(paste0("\n", nrow(loci_list), " significant loci identified for ", opt$phenotype_id, "\n"))
 cat(paste0("\n\nLocus breaker is finished!\n\n"))
+
+# Create the flag file
+create_flag_file(opt$outdir)
