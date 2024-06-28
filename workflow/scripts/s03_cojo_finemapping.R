@@ -7,7 +7,7 @@ option_list <- list(
   make_option("--chr", default=NULL, help="Locus chromosome"),
   make_option("--start", default=NULL, help="Locus starting position"),
   make_option("--end", default=NULL, help="Locus ending position"),
-  make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified - relevant in cases of molQTLs"),
+  make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified"),
   make_option("--dataset_gwas", default=NULL, help="GENOME-WIDE munged and aligned dataset file"),
   make_option("--mapping", default=NULL, help="Mapping file containing variants IDs matching with genotype bfile"),
   make_option("--p_thresh3", default=1e-04, help="Noise p-values threshold for COJO"),
@@ -18,7 +18,6 @@ option_list <- list(
   make_option("--p_thresh4", default=1e-06, help="P-value significant threshold for redefining loci boundaries post-COJO"),
   make_option("--hole", default=250000, help="Minimum pair-base distance between SNPs in different loci"),
   make_option("--cs_thresh", default=NULL, help="Percentage of credible set"),
-  make_option("--study_id", default=NULL, help="Id of the study"),
   make_option("--outdir", default=NULL, help="Output directory"),
   make_option("--plink2_mem", default=NULL, help="Amount of RAM necessary for genotype extraction"),
   make_option("--plink2_threads", default=NULL, help="Number of threads for genotype extraction"),
@@ -115,7 +114,7 @@ conditional.dataset <- cojo.ht(
   plink.threads = opt$plink2_threads
 )
 
-saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
+#saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
@@ -158,8 +157,7 @@ cat(paste0("done."))
 
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
-
-saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
+#saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 
 
@@ -176,31 +174,31 @@ finemap.res <- lapply(conditional.dataset$results, function(x){
 cat(paste0("done."))
 
 #########################################
-# Organise list of what needs to be saved
+# Organize list of what needs to be saved
 #########################################
 
 cat("\nSaving independent signals...")
 ## Save independent association signals
-core_file_name <- paste0(opt$study_id, "_", opt$phenotype_id)
-if(opt$phenotype_id=="full") { core_file_name <- gsub("_full", "", core_file_name)}
-fwrite(conditional.dataset$ind.snps, paste0(core_file_name, "_locus_chr", locus_name,"_ind_snps.tsv"), sep="\t", quote=F, na=NA)
+core_file_name <- paste0(opt$phenotype_id)
+
+fwrite(conditional.dataset$ind.snps, paste0(opt$phenotype_id, "_locus_chr", locus_name,"_ind_snps.tsv"), sep="\t", quote=F, na=NA)
 
 cat("done.\nSave other lABF results...")
+
 ## Save lABF of each conditional dataset
 lapply(finemap.res, function(x){
-  sp_file_name <- paste0(core_file_name, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
+  sp_file_name <- paste0(opt$phenotype_id, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
   # .rds object collecting 1) lABF, 2) beta, 3) pos for all SNPs, 3) list of SNPs in the credible set
   saveRDS(x, file=paste0(sp_file_name, "_finemap.rds")) ### cojo_snp reported in the file name   #x %>% select(-cojo_snp)
   # .tsv with 1) study id and trait (if molQTL) locus info, 2) list of SNPs in the 99% credible set, 3) path and name of correspondent .rds file and 4) path and name of correspondent ind_snps.tsv table
   #  --> append each row to a master table collecting all info from processed sum stats
   ### Idea: create guidelines for generating study ids
   tmp <- data.frame(
-    study_id = opt$study_id,
-    phenotype_id = ifelse(opt$phenotype_id=="full", NA, opt$phenotype_id),
+    phenotype_id = opt$phenotype_id,
     credible_set = paste0(x %>% filter(is_cs==TRUE) %>% pull(snp), collapse=","),
     #### Nextflow working directory "work" hard coded - KEEP in mind!! ####
-    path_rds = paste0(gsub("(.*)/work/.*", "\\1", getwd()), "/results/finemap/", sp_file_name, "_finemap.rds"),
-    path_ind_snps = paste0(gsub("(.*)/work/.*", "\\1", getwd()), "/results/gwas_and_loci_tables/", opt$study_id, "_final_ind_snps_table.tsv")
+    path_rds = paste0("/results/finemap/", sp_file_name, "_finemap.rds"),
+    path_ind_snps = paste0("/results/gwas_and_loci_tables/", opt$phenotype_id, "_final_ind_snps_table.tsv")
   )
   fwrite(tmp, paste0(sp_file_name, "_coloc_info_table.tsv"),
          sep="\t", quote=F, col.names = F, na=NA)
