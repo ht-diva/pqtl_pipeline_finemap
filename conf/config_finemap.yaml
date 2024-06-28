@@ -1,5 +1,4 @@
 path_code: "workflow/scripts/"
-path_mapping: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz"
 path_geno: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/bed/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 
 sumstats_path: conf/path_meta_all.txt
