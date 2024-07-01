@@ -23,7 +23,7 @@ rule all:
         #ws_path("break/collected_loci_excluding_mhc.csv")
 
 
-include: "rules/locus_breaker.smk"
+#include: "rules/locus_breaker.smk"
 
 
 rule collect_loci:
