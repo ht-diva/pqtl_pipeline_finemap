@@ -1,0 +1,10 @@
+name: locus_breaker
+channels:
+  - conda-forge
+  - defaults
+  - R
+dependencies: #R>=4.3
+  - r-base=4.3.3
+  - r-optparse=1.7.4
+  - r-tidyverse=2.0.0
+  - r-data.table=1.15.2
