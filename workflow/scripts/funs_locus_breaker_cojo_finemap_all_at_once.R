@@ -1,25 +1,26 @@
 # Load packages
 suppressMessages(library(optparse))
 suppressMessages(library(data.table))
-suppressMessages(library(R.utils))
+suppressMessages(library(tidyverse))
+#suppressMessages(library(R.utils))
 # suppressMessages(library(corrplot))
 suppressMessages(library(coloc))
-suppressMessages(library(bigsnpr))
-suppressMessages(library(ggplot2))
-suppressMessages(library(cowplot))
+#suppressMessages(library(bigsnpr))
+#suppressMessages(library(ggplot2))
+#suppressMessages(library(cowplot))
 suppressMessages(library(stringi))
-suppressMessages(library(stringr))
+#suppressMessages(library(stringr))
 suppressMessages(library(patchwork))
 # suppressMessages(library(reshape2))
 # suppressMessages(library(RColorBrewer))
 # suppressMessages(library(igraph))
-suppressMessages(library(purrr))
-suppressMessages(library(tidyr))
-suppressMessages(library(plyr))
+#suppressMessages(library(purrr))
+#suppressMessages(library(tidyr))
+#suppressMessages(library(plyr))
 # suppressMessages(library(Gviz))
 # suppressMessages(library(EnsDb.Hsapiens.v75))
 # suppressMessages(library(Matrix))
-suppressMessages(library(dplyr))
+#suppressMessages(library(dplyr))
 
 
 
@@ -298,7 +299,7 @@ cojo.ht=function(D=dataset_gwas
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
-      step2.res <- rbind.fill(
+      step2.res <- plyr::rbind.fill(
         step2.res,
         ind.snp %>% dplyr::select(-bJ,-bJ_se,-pJ,-LD_r)
       )
