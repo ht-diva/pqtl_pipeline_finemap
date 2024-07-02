@@ -6,7 +6,7 @@ from snakemake.utils import min_version
 min_version("8.4.1")
 
 
-containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:ee49bec"
+containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:44f3df5"
 
 
 # read the configuration file
