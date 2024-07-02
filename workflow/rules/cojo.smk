@@ -6,10 +6,8 @@ rule run_cojo:
     output:
         sentinel=ws_path("cojo/{seqid}/sentinel.txt"),
         log=ws_path("logs/cojo/{seqid}.log"),
-    #conda:
-    #    "../envs/r_environment.yml"
-    container:
-        "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:ee49bec"
+    conda:
+        "../envs/fine_mapping.yml"
     params:
         codes=config.get("path_code"),
         geno=config.get("path_geno"),
@@ -32,7 +30,7 @@ rule run_cojo:
         ws_path("logs/cojo/{seqid}.log"),
     resources:
         runtime=lambda wc, attempt: attempt * 60,
-        mem_mb=lambda wc, attempt: 8000 + attempt * 2048
+        mem_mb=lambda wc, attempt: 8000 + attempt * 2048,
     shell:
         """
         Rscript=`ls /conda-envs/*/bin/Rscript`;

@@ -9,7 +9,7 @@ with open(config["sumstats_path"], "r") as fp:
 
 for line in lines:
     p = Path(line.strip())
-    seqid = ".".join(p.stem.split(".")[:3]) #seqid = p.stem.split("_")[3]
+    seqid = ".".join(p.stem.split(".")[:3])  # seqid = p.stem.split("_")[3]
     data.append((seqid, str(p)))
 
 analytes = (
@@ -26,4 +26,3 @@ def get_sumstats(wildcards):
 # define the functions generating files' path
 def ws_path(file_path):
     return str(Path(config.get("workspace_path"), file_path))
-

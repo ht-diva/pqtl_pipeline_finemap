@@ -210,7 +210,7 @@ cojo.ht=function(D=dataset_gwas
                 , n.label=opt$n_label
                 , p.label=opt$p_label
                 ){
-    
+
     chr.label <- sym(opt$chr_label)
     pos.label <- sym(opt$pos_label)
     ea.label  <- sym(opt$ea_label)
@@ -220,9 +220,9 @@ cojo.ht=function(D=dataset_gwas
     beta.label <- sym(opt$beta_label)
     n.label   <- sym(opt$n_label)
     p.label   <- sym(opt$p_label)
-    
+
     random.number=stri_rand_strings(n=1, length=20, pattern = "[A-Za-z0-9]")
-    
+
 ### Produce two snp.lists: 1) all SNPs to compute allele frequency, 2) only snps included in the locus
     write(D$SNP, ncol=1,file=paste0(random.number,".snp.list"))
     write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))

@@ -53,7 +53,7 @@ key.label <- sym(opt$key_label)
 
 
 # Slightly enlarge locus by 200kb!
-locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end) 
+locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)
 cat(paste("\nlocus is:", locus_name))
 
 opt$chr    <- as.numeric(opt$chr)
@@ -97,9 +97,9 @@ conditional.dataset <- cojo.ht(
   pos.label = opt$pos_label,
   ea.label = opt$ea_label,
   oa.label = opt$oa_label,
-  eaf.label = opt$eaf_label, 
-  se.label = opt$se_label, 
-  beta.label = opt$beta_label, 
+  eaf.label = opt$eaf_label,
+  se.label = opt$se_label,
+  beta.label = opt$beta_label,
   n.label = opt$n_label,
   p.label = opt$p_label,
   locus_chr = opt$chr,

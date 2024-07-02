@@ -75,7 +75,7 @@ cat /exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_select
 
 # remove old results
 rm -r results/meta/cojo/seq.13435.31/
-rm results/meta/cojo/seq.13435.31_locus_chr6_31405620_32786291_ind_snps.tsv 
+rm results/meta/cojo/seq.13435.31_locus_chr6_31405620_32786291_ind_snps.tsv
 rm results/meta/logs/cojo/seq.13435.31.log
 
 ```

@@ -5,7 +5,7 @@ rule break_locus:
     output:
         loci=ws_path("break/{seqid}_loci.csv"),
     conda:
-        "../envs/r_environment.yml"
+        "../envs/locus_breaker.yml"
     params:
         codes=config.get("path_code"),
         phenotype_id="{seqid}",
@@ -35,3 +35,16 @@ rule break_locus:
             --chr_label {params.chr_label} \
             --pos_label {params.pos_label} > {log}
         """
+
+
+rule collect_loci:
+    input:
+        expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
+    output:
+        ofile=ws_path("break/collected_loci_excluding_mhc.csv"),
+    conda:
+        "../envs/locus_breaker.yml"
+    resources:
+        runtime=lambda wc, attempt: attempt * 30,
+    script:
+        "../scripts/s02_collect_loci.R"
