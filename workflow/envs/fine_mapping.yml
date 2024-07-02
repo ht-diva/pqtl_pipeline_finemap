@@ -1,12 +1,12 @@
 name: fine_mapping
 channels:
   - conda-forge
+  - bioconda
   - defaults
   - R
 dependencies:
   - plink2=2.00a5.10-0
   - gcta=1.94.1-0
-dependencies:
   - r-base=4.3.3
   - r-optparse=1.7.4
   - r-tidyverse=2.0.0
