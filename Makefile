@@ -4,7 +4,7 @@ CONDA_ENV_DIR=$(shell dirname ${CONDA_EXE})
 HN=$(shell hostname | sed "s/[0-9]//g")
 
 
-ifeq ($(HN),$(filter $(HN),cnode gnode))
+ifeq ($(HN),$(filter $(HN),cnode gnode hnode))
   CONDA_ENV_NAME=/exchange/healthds/software/envs/snakemake
 else
   CONDA_ENV_NAME=snakemake
