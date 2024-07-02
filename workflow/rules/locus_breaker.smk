@@ -22,8 +22,8 @@ rule break_locus:
         runtime=lambda wc, attempt: attempt * 30,
     shell:
         """
-        Rscript=`ls /conda-envs/*/bin/Rscript`;
-        $Rscript ../scripts/s01_locus_breaker.R \
+        # Rscript=`ls /conda-envs/*/bin/Rscript`;
+        Rscript workflow/scripts/s01_locus_breaker.R \
             --pipeline_path {params.codes} \
             --input {input.gwas} \
             --phenotype_id '{params.phenotype_id}' \

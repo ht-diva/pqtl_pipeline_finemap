@@ -1,4 +1,83 @@
 suppressMessages(library(optparse))
+suppressMessages(library(data.table))
+suppressMessages(library(tidyverse))
+
+### locus.breaker
+locus.breaker.p <- function(
+    res,
+    p.sig = 5e-08,
+    p.limit = 1e-05,
+    hole.size = 250000,
+    p.label = "P",
+    chr.label = "CHR",
+    pos.label = "BP"){
+
+  res <- as.data.frame(res)
+  res = res[order(as.numeric(res[, chr.label]), as.numeric(res[,pos.label])), ]
+  res = res[which(res[, p.label] > p.limit), ]
+  trait.res = c()
+
+  for(j in unique(res[,chr.label])) {
+    res.chr = res[which(res[, chr.label] == j), ]
+    if (nrow(res.chr) > 1) {
+      holes = res.chr[, pos.label][-1] - res.chr[, pos.label][-length(res.chr[,pos.label])]
+      gaps = which(holes > hole.size)
+      if (length(gaps) > 0) {
+        for (k in 1:(length(gaps) + 1)) {
+          if (k == 1) {
+            res.loc = res.chr[1:(gaps[k]), ]
+          }
+          else if (k == (length(gaps) + 1)) {
+            res.loc = res.chr[(gaps[k - 1] + 1):nrow(res.chr),
+            ]
+          } else {
+            res.loc = res.chr[(gaps[k - 1] + 1):(gaps[k]),
+            ]
+          }
+          if (max(res.loc[, p.label]) > p.sig) {
+            start.pos = max(res.loc[, pos.label], na.rm = T)
+            end.pos = min(res.loc[, pos.label], na.rm = T)
+            chr = j
+            best.snp = res.loc[which.max(res.loc[, p.label]),
+            ]
+            line.res = c(chr, start.pos, end.pos, unlist(best.snp))
+            trait.res = rbind(trait.res, line.res)
+          }
+        }
+      } else {
+        res.loc = res.chr
+        if (min(res.loc[, p.label]) > p.sig) {
+          start.pos = max(res.loc[, pos.l.abel], na.rm = T)
+          end.pos = min(res.loc[, pos.label], na.rm = T)
+          chr = j
+          best.snp = res.loc[which.max(res.loc[, p.label]),
+          ]
+          line.res = c(chr, start.pos, end.pos, unlist(best.snp))
+          trait.res = rbind(trait.res, line.res)
+        }
+      }
+    }
+    else if (nrow(res.chr) == 1) {
+      res.loc = res.chr
+      if (max(res.loc[, p.label]) > p.sig) {
+        start.pos = max(res.loc[, pos.label], na.rm = T)
+        end.pos = min(res.loc[, pos.label], na.rm = T)
+        chr = j
+        best.snp = res.loc[which.max(res.loc[, p.label]),
+        ]
+        line.res = c(chr, start.pos, end.pos, unlist(best.snp))
+        trait.res = rbind(trait.res, line.res)
+      }
+    }
+  }
+  if(!is.null(trait.res)){
+    trait.res = as.data.frame(trait.res, stringsAsFactors = FALSE)
+    trait.res = trait.res[, -(which(names(trait.res) == chr.label))]
+    names(trait.res)[1:3] = c("chr", "start", "end")
+    rownames(trait.res) <- NULL
+  }
+  return(trait.res)
+}
 
 option_list <- list(
   make_option("--pipeline_path", default=NULL, help="Path where Rscript lives"),
@@ -16,7 +95,7 @@ opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
 ## Source function R functions
-source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
+# source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 cat("\n\nChecking input file...")
 
 ## Throw error message - GWAS summary statistics file MUST be provided!

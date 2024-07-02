@@ -33,7 +33,7 @@ rule run_cojo:
         mem_mb=lambda wc, attempt: 8000 + attempt * 2048,
     shell:
         """
-        Rscript=`ls /conda-envs/*/bin/Rscript`;
+        # Rscript=`ls /conda-envs/*/bin/Rscript`;
         INPUT_FILE={input.loci};
 
         # read loci and loop over each locus
@@ -50,7 +50,7 @@ rule run_cojo:
 
             # Skip the first line then run the script
             if [[ "$chr" != "chr" ]]; then
-                Rscript scripts/s03_cojo_finemapping.R  \
+                Rscript workflow/scripts/s03_cojo_finemapping.R  \
                 --pipeline_path   {params.codes}  \
                 --dataset_gwas {input.gwas}  \
                 --phenotype_id {params.ofile}  \
@@ -64,7 +64,7 @@ rule run_cojo:
                 --maf       {params.maf}  \
                 --outdir {params.ofile} \
                 --plink2_mem {resources.mem_mb}  \
-                --plink2_threads {threads} \
+                --plink2_threads {resources.threads} \
                 --chr_label {params.chr_label} \
                 --pos_label {params.pos_label} \
                 --snpid_label {params.snpid_label} \
