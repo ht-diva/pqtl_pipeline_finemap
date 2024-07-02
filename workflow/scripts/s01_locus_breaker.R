@@ -2,20 +2,22 @@ suppressMessages(library(optparse))
 suppressMessages(library(data.table))
 suppressMessages(library(tidyverse))
 
-### locus.breaker
-locus.breaker.p <- function(
+### locus.breaker: works with -log10p
+locus.breaker <- function(
     res,
-    p.sig = 5e-08,
-    p.limit = 1e-05,
+    p.sig     = -log10(5e-08),
+    p.limit   = -log10(1e-06),
     hole.size = 250000,
-    p.label = "P",
-    chr.label = "CHR",
-    pos.label = "BP"){
+    p.label   = "LOG10P",
+    chr.label = "CHROM",
+    pos.label = "GENPOS"){
+
 
   res <- as.data.frame(res)
   res = res[order(as.numeric(res[, chr.label]), as.numeric(res[,pos.label])), ]
   res = res[which(res[, p.label] > p.limit), ]
   trait.res = c()
+
 
   for(j in unique(res[,chr.label])) {
     res.chr = res[which(res[, chr.label] == j), ]
@@ -35,8 +37,8 @@ locus.breaker.p <- function(
             ]
           }
           if (max(res.loc[, p.label]) > p.sig) {
-            start.pos = max(res.loc[, pos.label], na.rm = T)
-            end.pos = min(res.loc[, pos.label], na.rm = T)
+            start.pos = min(res.loc[, pos.label], na.rm = T)
+            end.pos = max(res.loc[, pos.label], na.rm = T)
             chr = j
             best.snp = res.loc[which.max(res.loc[, p.label]),
             ]
@@ -46,9 +48,9 @@ locus.breaker.p <- function(
         }
       } else {
         res.loc = res.chr
-        if (min(res.loc[, p.label]) > p.sig) {
-          start.pos = max(res.loc[, pos.l.abel], na.rm = T)
-          end.pos = min(res.loc[, pos.label], na.rm = T)
+        if (max(res.loc[, p.label]) > p.sig) {
+          start.pos = min(res.loc[, pos.label], na.rm = T)
+          end.pos = max(res.loc[, pos.label], na.rm = T)
           chr = j
           best.snp = res.loc[which.max(res.loc[, p.label]),
           ]
@@ -60,8 +62,8 @@ locus.breaker.p <- function(
     else if (nrow(res.chr) == 1) {
       res.loc = res.chr
       if (max(res.loc[, p.label]) > p.sig) {
-        start.pos = max(res.loc[, pos.label], na.rm = T)
-        end.pos = min(res.loc[, pos.label], na.rm = T)
+        start.pos = min(res.loc[, pos.label], na.rm = T)
+        end.pos = max(res.loc[, pos.label], na.rm = T)
         chr = j
         best.snp = res.loc[which.max(res.loc[, p.label]),
         ]
