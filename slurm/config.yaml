@@ -13,7 +13,7 @@ local-cores: 1
 cores: &cores 2
 latency-wait: 60
 keep-going: True
-rerun-incomplete: False
+rerun-incomplete: True
 printshellcmds: True
 scheduler: ilp
 
@@ -27,5 +27,7 @@ default-resources:
 set-resources:
     break_locus:
         mem_mb: 8000 + attempt * 2048
+    collect_loci:
+      mem_mb: 8000 + attempt * 2048
     run_cojo:
         mem_mb: 8000 + attempt * 2048
