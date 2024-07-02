@@ -49,7 +49,6 @@ eaf.label <- sym(opt$eaf_label)
 se.label  <- sym(opt$se_label)
 n.label   <- sym(opt$n_label)
 p.label   <- sym(opt$p_label)
-key.label <- sym(opt$key_label)
 
 
 # Slightly enlarge locus by 200kb!
