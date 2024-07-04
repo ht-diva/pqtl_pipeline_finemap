@@ -77,6 +77,7 @@ rule run_cojo:
                 --p_label   {params.p_label} >> {log}
             fi
         done < "$INPUT_FILE"
+        #touch {output.sentinel}
         """
 
 rule collect_credible_sets:
