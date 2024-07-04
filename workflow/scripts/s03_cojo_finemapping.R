@@ -50,14 +50,30 @@ se.label  <- sym(opt$se_label)
 n.label   <- sym(opt$n_label)
 p.label   <- sym(opt$p_label)
 
+# converts inputs to numeric
+opt$chr    <- as.numeric(opt$chr)
+opt$start  <- as.numeric(opt$start)
+opt$end    <- as.numeric(opt$end)
 
-# Slightly enlarge locus by 200kb!
+# locus name
 locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)
 cat(paste("\nlocus is:", locus_name))
 
-opt$chr    <- as.numeric(opt$chr)
-opt$start  <- as.numeric(opt$start) - 100000
-opt$end    <- as.numeric(opt$end) + 100000
+
+# condition not to run COJO on loci in HLA region
+if(opt$chr == 6 & !(opt$end < 28477797 | opt$start > 33448354)) {
+  # Create a flag file indicating an HLA signal
+  flag_file <- paste0(opt$phenotype_id, "_hla_signal.txt")
+  cat("HLA signal detected for", basename(opt$phenotype_id), "at this locus:", locus_name, "\n", file = flag_file)
+  # stop here and move to the next locus
+  #stop("The provided locus overlaps the HLA region! Stop the COJO rule here.")
+  quit(status = 0)  # Exit the script silently
+}
+
+
+# Slightly enlarge locus by 200kb!
+opt$start  <- opt$start - 100000
+opt$end    <- opt$end + 100000
 
 # to avoid killing plink job, reduce resources
 opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
@@ -113,13 +129,17 @@ conditional.dataset <- cojo.ht(
   plink.threads = opt$plink2_threads
 )
 
-#saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
 dir.create(paste0(opt$outdir), recursive = TRUE)
-#pdf(paste0(opt$study_id, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) ### have the original loci boundaries in the name, or the slightly enlarged ones?
-png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), res = 300, units = "in", height=6.5, width=10)
+### have the original loci boundaries in the name, or the slightly enlarged ones?
+png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=3.5*nrow(conditional.dataset$ind.snps), width=10, res = 500, units = "in")
+plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
+dev.off()
+
+pdf(paste0(opt$study_id, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) 
 plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 dev.off()
 
@@ -156,7 +176,7 @@ cat(paste0("done."))
 
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
-#saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 
 
