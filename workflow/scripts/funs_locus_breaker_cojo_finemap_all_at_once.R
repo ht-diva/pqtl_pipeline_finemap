@@ -335,11 +335,11 @@ finemap.cojo <- function(D, cs_threshold=0.99){
 # Format input
     D <- D %>%
       dplyr::mutate(varbeta=bC_se^2) %>%
-      dplyr::select("snp_map","Chr","bp","bC","varbeta","n","pC","freq","type",any_of(c("sdY","s"))) %>%
+      dplyr::select("snp_map","Chr","bp","bC","varbeta","n","pC","freq",any_of(c("sdY","s","type"))) %>%
       rename("snp"="snp_map","chr"="Chr","position"="bp","beta"="bC","N"="n","pvalues"="pC","MAF"="freq")
 
   D <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
-  D$type <- unique(D$type)
+  #D$type <- unique(D$type)
   #if(D$type=="cc"){D$s <- unique(D$s)}else{D$sdY <- unique(D$sdY)}
   D$sdY <- unique(D$sdY)
 

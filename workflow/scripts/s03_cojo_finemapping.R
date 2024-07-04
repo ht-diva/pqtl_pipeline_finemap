@@ -92,8 +92,6 @@ dataset_gwas <- dataset_gwas %>%
   dplyr::mutate(
     snp_map = !!snpid.label, # to report cojo results
     sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
-    #sdY = coloc:::sdY.est(SE, EAF, N),
-    type = paste0('quant')
   ) %>%
   #rename(SNP = !!key.label) #to be used by COJO to merge with genotype
   rename(SNP = !!snpid.label)
