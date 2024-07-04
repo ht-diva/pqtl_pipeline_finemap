@@ -4,7 +4,7 @@ rule run_cojo:
         gwas=get_sumstats,
         loci=ws_path("break/{seqid}_loci.csv"),
     output:
-        sentinel=ws_path("cojo/{seqid}/sentinel.txt"),
+        sentinel=touch(ws_path("cojo/{seqid}.sentinel")),
         log=ws_path("logs/cojo/{seqid}.log"),
     conda:
         "../envs/fine_mapping.yml"
@@ -77,5 +77,18 @@ rule run_cojo:
                 --p_label   {params.p_label} >> {log}
             fi
         done < "$INPUT_FILE"
-        touch {output.sentinel}
         """
+
+rule collect_credible_sets:
+    input:
+        expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
+    output:
+        ofile=ws_path("cojo/collected_credible_sets.csv"),
+    conda:
+        "../envs/locus_breaker.yml"
+    resources:
+        runtime=lambda wc, attempt: attempt * 30,
+    script:
+        "../scripts/s04_collect_credible_sets.R"
+
+
