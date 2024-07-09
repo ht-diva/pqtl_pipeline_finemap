@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name locojo
-#SBATCH --output %j_break_cojo_meta.log
+#SBATCH --output %j_meta_digits_not_flipped.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
