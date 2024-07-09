@@ -143,7 +143,8 @@ check_signif <- function(x){
     pos.label = opt$pos_label
   )
   }else{
-    stop("There is no significant signal in the current GWAS file.")
+    cat(paste0("There is no significant signal in the current GWAS file."))
+    return(NA)
   }
 } %>% discard(is.null)
 
