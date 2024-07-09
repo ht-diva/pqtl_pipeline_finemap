@@ -142,9 +142,9 @@ check_signif <- function(x){
   )
   }else{
     # Create a flag file waving that there is no significant signal in the current GWAS file.
-    flag_file <- paste0(opt$phenotype_id, "_no_signal.txt")
+    flag_file <- paste0(opt$outdir, "_no_signal.txt")
     cat("No signal detected in the GWAS of", basename(opt$phenotype_id), "at the significance level of:", opt$p_thresh1, "\n", file = flag_file)
-    return(NA)  # continue to run the rest
+    return(NULL)  # continue to run the rest
   }
 } %>% discard(is.null)
 
