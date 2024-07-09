@@ -81,19 +81,15 @@ opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
 
 # reading GWAS and mapping files
 dataset_gwas <- fread(opt$dataset_gwas, data.table=F)
-#dataset_map  <- fread(opt$mapping, data.table=F)
 
 cat(paste0("\nAdding original alleles from mapping to GWAS summary..."))
 
 # merge map file with GWAS results
 dataset_gwas <- dataset_gwas %>%
-  # merge summary stats with map file. Then, SNP id matches with genotype file
-  #left_join(dataset_map, join_by(!!snpid.label == !!snpid.label)) %>%
   dplyr::mutate(
     snp_map = !!snpid.label, # to report cojo results
     sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
   ) %>%
-  #rename(SNP = !!key.label) #to be used by COJO to merge with genotype
   rename(SNP = !!snpid.label)
 
 cat(paste0("done."))
@@ -127,19 +123,20 @@ conditional.dataset <- cojo.ht(
   plink.threads = opt$plink2_threads
 )
 
+# create folder to save outputs for each seqid separately
+dir.create(paste0(opt$outdir), recursive = TRUE)
+
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
-dir.create(paste0(opt$outdir), recursive = TRUE)
 ### have the original loci boundaries in the name, or the slightly enlarged ones?
-png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=3.5*nrow(conditional.dataset$ind.snps), width=10, res = 500, units = "in")
+pdf(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) 
 plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 dev.off()
 
-pdf(paste0(opt$study_id, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=3.5*nrow(conditional.dataset$ind.snps), width=10) 
-plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
-dev.off()
+plt_loci <- plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
+ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=3.5*nrow(conditional.dataset$ind.snps), width=10, dpi = 500, units = "in", limitsize = FALSE)
 
 cat("created!")
 
@@ -204,7 +201,7 @@ cat("done.\nSave other lABF results...")
 
 ## Save lABF of each conditional dataset
 lapply(finemap.res, function(x){
-  sp_file_name <- paste0(opt$phenotype_id, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
+  sp_file_name <- paste0(opt$outdir, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
   # .rds object collecting 1) lABF, 2) beta, 3) pos for all SNPs, 3) list of SNPs in the credible set
   saveRDS(x, file=paste0(sp_file_name, "_finemap.rds")) ### cojo_snp reported in the file name   #x %>% select(-cojo_snp)
   # .tsv with 1) study id and trait (if molQTL) locus info, 2) list of SNPs in the 99% credible set, 3) path and name of correspondent .rds file and 4) path and name of correspondent ind_snps.tsv table
