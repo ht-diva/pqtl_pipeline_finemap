@@ -32,3 +32,5 @@ set-resources:
     run_cojo:
         mem_mb: 8000 + attempt * 2048
         threads: *cores
+    collect_credible_sets:
+        mem_mb: 8000 + attempt * 2048
