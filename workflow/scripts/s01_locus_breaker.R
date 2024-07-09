@@ -2,7 +2,23 @@ suppressMessages(library(optparse))
 suppressMessages(library(data.table))
 suppressMessages(library(tidyverse))
 
-### locus.breaker: works with -log10p
+
+option_list <- list(
+  make_option("--pipeline_path", default=NULL, help="Path where Rscript lives"),
+  make_option("--input", default=NULL, help="Path and file name of GWAS summary statistics"),
+  make_option("--p_thresh1", default=5e-08, help="Significant p-value threshold for top hits"),
+  make_option("--p_thresh2", default=1e-05, help="P-value threshold for loci borders"),
+  make_option("--hole", default=250000, help="Minimum pair-base distance between SNPs in different loci"),
+  make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified"),
+  make_option("--outdir", default=NULL, help="Output directory"),
+  make_option("--p_label", default=NULL, help="Label of P column"),
+  make_option("--chr_label", default=NULL, help="Label of CHR column"),
+  make_option("--pos_label", default=NULL, help="Label of POS column")
+);
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
+
+## Source function for locus.breaker: works with -log10p
 locus.breaker <- function(
     res,
     p.sig     = -log10(5e-08),
@@ -12,12 +28,10 @@ locus.breaker <- function(
     chr.label = "CHROM",
     pos.label = "GENPOS"){
 
-
   res <- as.data.frame(res)
   res = res[order(as.numeric(res[, chr.label]), as.numeric(res[,pos.label])), ]
   res = res[which(res[, p.label] > p.limit), ]
   trait.res = c()
-
 
   for(j in unique(res[,chr.label])) {
     res.chr = res[which(res[, chr.label] == j), ]
@@ -81,23 +95,7 @@ locus.breaker <- function(
   return(trait.res)
 }
 
-option_list <- list(
-  make_option("--pipeline_path", default=NULL, help="Path where Rscript lives"),
-  make_option("--input", default=NULL, help="Path and file name of GWAS summary statistics"),
-  make_option("--p_thresh1", default=5e-08, help="Significant p-value threshold for top hits"),
-  make_option("--p_thresh2", default=1e-05, help="P-value threshold for loci borders"),
-  make_option("--hole", default=250000, help="Minimum pair-base distance between SNPs in different loci"),
-  make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified"),
-  make_option("--outdir", default=NULL, help="Output directory"),
-  make_option("--p_label", default=NULL, help="Label of P column"),
-  make_option("--chr_label", default=NULL, help="Label of CHR column"),
-  make_option("--pos_label", default=NULL, help="Label of POS column")
-);
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
 
-## Source function R functions
-# source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 cat("\n\nChecking input file...")
 
 ## Throw error message - GWAS summary statistics file MUST be provided!
@@ -143,8 +141,10 @@ check_signif <- function(x){
     pos.label = opt$pos_label
   )
   }else{
-    cat(paste0("There is no significant signal in the current GWAS file."))
-    return(NA)
+    # Create a flag file waving that there is no significant signal in the current GWAS file.
+    flag_file <- paste0(opt$phenotype_id, "_no_signal.txt")
+    cat("No signal detected in the GWAS of", basename(opt$phenotype_id), "at the significance level of:", opt$p_thresh1, "\n", file = flag_file)
+    return(NA)  # continue to run the rest
   }
 } %>% discard(is.null)
 
@@ -163,6 +163,3 @@ cat(paste0("done!\n"))
 
 cat(paste0("\n", nrow(loci_list), " significant loci identified for ", opt$phenotype_id, "\n"))
 cat(paste0("\n\nLocus breaker is finished!\n\n"))
-
-# Create the flag file
-create_flag_file(opt$outdir)
