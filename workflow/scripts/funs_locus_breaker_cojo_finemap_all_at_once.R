@@ -168,7 +168,7 @@ cojo.ht=function(D=dataset_gwas
     dataset.list=list()
     ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
       mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
-      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s"))), by="SNP")
+      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s", opt$ea_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -190,7 +190,7 @@ cojo.ht=function(D=dataset_gwas
           # Re-add type and sdY/s info, and map SNPs!
           step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
             dplyr::mutate(SNP = as.character(SNP)) %>%  # to ensure class of joint column is the same
-            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s"))), by="SNP") %>%
+            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s", opt$ea_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
           dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp[i,])
@@ -210,7 +210,7 @@ cojo.ht=function(D=dataset_gwas
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         dplyr::mutate(SNP = as.character(SNP), refA = as.character(refA)) %>% # to ensure class of joint column is the same
-        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s"))), by=c("SNP", "refA"=opt$ea_label))
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s", opt$ea_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
