@@ -23,8 +23,6 @@ credible_set_list <- lapply(
       )}) %>% 
   unlist()
 
-credible_set_list
-
 #--------------#
 # Merge them
 cojo_meta <- tibble(
@@ -43,8 +41,6 @@ cojo_meta <- tibble(
     )
   )
 ) %>% arrange(Chr)
-
-cojo_meta
 
 #--------------#
 # save the joint results
