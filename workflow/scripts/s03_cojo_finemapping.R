@@ -136,7 +136,7 @@ plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr"
 dev.off()
 
 plt_loci <- plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
-ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=3.5*nrow(conditional.dataset$ind.snps), width=10, dpi = 500, units = "in", limitsize = FALSE)
+ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4*nrow(conditional.dataset$ind.snps), width=10, dpi = 500, units = "in", limitsize = FALSE)
 
 cat("created!")
 
