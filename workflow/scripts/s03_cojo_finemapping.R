@@ -172,11 +172,20 @@ cat(paste0("done."))
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 
-pval <- 2 * pnorm(mpfr(-abs(conditional.dataset$results$b/conditional.dataset$results$se), 120))
-conditional.dataset$results$minuslog10pval = as.numeric(-log10(pval))
+compute_pvals <- function(df) {
+  pval <- 2 * pnorm(mpfr(-abs(df$b / df$se), 120))
+  df$minuslog10pval <- as.numeric(-log10(pval))
 
-pvalC <- 2 * pnorm(mpfr(-abs(conditional.dataset$results$bC/conditional.dataset$results$bC_se), 120))
-conditional.dataset$results$minuslog10pvalC = as.numeric(-log10(pvalC))
+  pvalC <- 2 * pnorm(mpfr(-abs(df$bC / df$bC_se), 120))
+  df$minuslog10pvalC <- as.numeric(-log10(pvalC))
+
+  return(df)
+}
+
+conditional.dataset$results <- conditional.dataset$results %>%
+  group_by(locus_name) %>%
+  group_modify(~ compute_pvals(.x)) %>%
+  ungroup()
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
