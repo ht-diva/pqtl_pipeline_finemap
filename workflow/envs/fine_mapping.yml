@@ -17,4 +17,4 @@ dependencies:
   - r-patchwork=1.2.0
   - r-stringi=1.8.3
   - r-plyr=1.8.9
-  - r-Rmpfr=0.9-5
+  - r-rmpfr=0.9_3

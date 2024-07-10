@@ -175,6 +175,9 @@ conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 pval <- 2 * pnorm(mpfr(-abs(conditional.dataset$b/conditional.dataset$se), 120))
 conditional.dataset$minuslog10pval = as.numeric(-log10(pval))
 
+pvalJ <- 2 * pnorm(mpfr(-abs(conditional.dataset$bJ/conditional.dataset$bJ_se), 120))
+conditional.dataset$minuslog10pvalJ = as.numeric(-log10(pvalJ))
+
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 #############
