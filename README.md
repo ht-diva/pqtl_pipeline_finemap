@@ -1,38 +1,6 @@
 # pqtl_pipeline_finemap
 Fine mapping analysis within the pQTL pipeline project
 
-```{bash}
-
-# get to the project dir
-cd projects/pqtl_pipeline_finemap/
-
-# copy R scripts into home directory
-cp /exchange/healthds/pQTL/pQTL_workplace/fine_mapping_genomics/nf-hcoloc/bin/*.R projects/pqtl_pipeline_finemap/workflow/scripts/
-
-# create conda env to install and load R libraries
-mkdir workflow/envs
-cd envs/
-touch r_finemap.yml
-
-# add packages with their version in yaml file
-conda env create -f r_environment.yml
-
-# test r code
-conda activate r_finemap
-Rscript ../scripts/s01_sumstat_munging.R
-conda deactivate
-
-# get to the env to install missed libraries
-cd ../envs/
-conda env update -f r_environment.yml
-conda env list
-
-# try to reactivate env to test it
-conda activate r_finemap
-Rscript ../scripts/s01_sumstat_munging.R
-conda deactivate
-
-```
 
 - First step is tested. Second is ongoing! (19:00, Fri, 12-Apr-24)
 
@@ -55,30 +23,9 @@ conda deactivate
 ls -1 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped/output/seq*/seq*.gwaslab.tsv.bgz > conf/path_meta_all.txt
 ```
 
-```bash
-
 # mapping files
-head mapping_chr6.txt
-zcat /exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz
+`/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz`
 
-# Gcount
-cat ThicxTShY15uHN8Y6S44_sum.txt | grep 6:32561656
-
-# Metal
-zcat /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats/output/seq.13435.31/seq.13435.31.gwaslab.tsv.gz
-
-# subset genotype
-cat 6_31305620_32886291/ThicxTShY15uHN8Y6S44.bim | grep 6:32561656
-
-# PGEN
-cat /exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/impute_recoded_selected_sample_filter_hq_var_6.pvar
-
-# remove old results
-rm -r results/meta/cojo/seq.13435.31/
-rm results/meta/cojo/seq.13435.31_locus_chr6_31405620_32786291_ind_snps.tsv
-rm results/meta/logs/cojo/seq.13435.31.log
-
-```
 
 # Next-Flow pipeline for evaluation of the results
 `/ssu/bsssu/dariush_coloc/testing_nf_pipeline`
@@ -87,10 +34,8 @@ rm results/meta/logs/cojo/seq.13435.31.log
 
 - Verifying the results using GLM model (Thu, 03:12, 18 to 20-Jun-23).
 
-- Computing LD and converting to matrix format for running SUSIE (Fri, 23:37, 21-Jun-24).
-
-- Susie was successfully run on the example protein and finally three causal variants were identified (Sunday, 16:46, 24-Jun-24).
-
 - Lunching the locus breaker and COJO on the latest meta-analysis results (Mon, 23:55, 24-Jun-24)
+
+- Running locus definition and COJO using updated PGEN/BED genotypes got finished (Tue, 19:30, 10-Jul-24).   
 
 Dariush
