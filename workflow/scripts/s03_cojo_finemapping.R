@@ -171,9 +171,11 @@ cat(paste0("done."))
 
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
+
+pval <- 2 * pnorm(mpfr(-abs(conditional.dataset$b/conditional.dataset$se), 120))
+conditional.dataset$minuslog10pval = as.numeric(-log10(pval))
+
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
-
-
 
 #############
 # Finemapping
