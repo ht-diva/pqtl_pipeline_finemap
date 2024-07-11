@@ -88,7 +88,7 @@ rule collect_credible_sets:
     conda:
         "../envs/locus_breaker.yml"
     resources:
-        runtime=lambda wc, attempt: attempt * 30,
+        runtime=lambda wc, attempt: 270 + attempt * 60,
     script:
         "../scripts/s04_collect_credible_sets.R"
 
