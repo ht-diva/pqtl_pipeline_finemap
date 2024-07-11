@@ -1,4 +1,5 @@
 suppressMessages(library(optparse))
+suppressMessages(library(rmpfr))
 #scipen=0
 
 # Get arguments specified in the sbatch
