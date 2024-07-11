@@ -171,28 +171,6 @@ cat(paste0("done."))
 
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
-
-# Compute minuslog10pval and minuslog10pvalC
-results_names <- names(conditional.dataset$results)
-
-for (name in results_names) {
-  # Access the dataframe
-  df <- conditional.dataset$results[[name]]
-
-  # Calculate the p-value using the provided formula
-  pval <- 2 * pnorm(mpfr(-abs(df$b / df$se), 120))
-  # Calculate the minuslog10pval and add it to the dataframe
-  df$minuslog10pval <- as.numeric(-log10(pval))
-
-  # Calculate the p-value using the provided formula
-  pvalC <- 2 * pnorm(mpfr(-abs(df$bC / df$bC_se), 120))
-  # Calculate the minuslog10pval and add it to the dataframe
-  df$minuslog10pvalC <- as.numeric(-log10(pvalC))
-
-  # Store the updated dataframe back in the list
-  conditional.dataset$results[[name]] <- df
-}
-
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 #############
