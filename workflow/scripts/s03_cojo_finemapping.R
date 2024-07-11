@@ -172,6 +172,7 @@ cat(paste0("done."))
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 
+# Define the function to compute minuslog10pval and minuslog10pvalC
 compute_pvals <- function(df) {
   pval <- 2 * pnorm(mpfr(-abs(df$b / df$se), 120))
   df$minuslog10pval <- as.numeric(-log10(pval))
@@ -182,10 +183,9 @@ compute_pvals <- function(df) {
   return(df)
 }
 
+# Iterate over each dataframe within conditional.dataset$results and apply compute_pvals
 conditional.dataset$results <- conditional.dataset$results %>%
-  group_by(locus_name) %>%
-  group_modify(~ compute_pvals(.x)) %>%
-  ungroup()
+  map(~ .x %>% compute_pvals())
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
