@@ -201,7 +201,7 @@ cat("done.\nSave other lABF results...")
 
 ## Save lABF of each conditional dataset
 lapply(finemap.res, function(x){
-  sp_file_name <- paste0(opt$outdir, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
+  sp_file_name <- paste0(opt$phenotype_id, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
   # .rds object collecting 1) lABF, 2) beta, 3) pos for all SNPs, 3) list of SNPs in the credible set
   saveRDS(x, file=paste0(sp_file_name, "_finemap.rds")) ### cojo_snp reported in the file name   #x %>% select(-cojo_snp)
   # .tsv with 1) study id and trait (if molQTL) locus info, 2) list of SNPs in the 99% credible set, 3) path and name of correspondent .rds file and 4) path and name of correspondent ind_snps.tsv table
