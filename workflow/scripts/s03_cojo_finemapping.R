@@ -142,24 +142,25 @@ for (name in results_names) {
     # Iterate through each row to handle NA and perform calculations
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
-        pval[i] <- 2 * pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120), lower.tail = FALSE)
+        pval[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120), lower.tail = FALSE))
       }
       if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        pvalC[i] <- 2 * pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120), lower.tail = FALSE)
+        pvalC[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120), lower.tail = FALSE))
       }
     }
 
     # Add the results to the dataframe
-    df$pval <- as.numeric(pval)
-    df$minuslog10pval <- as.numeric(-log10(pval))
+    df$pval <- pval
+    df$minuslog10pval <- -log10(pval)
 
-    df$pvalC <- as.numeric(pvalC)
-    df$minuslog10pvalC <- as.numeric(-log10(pvalC))
+    df$pvalC <- pvalC
+    df$minuslog10pvalC <- -log10(pvalC)
 
     # Store the updated dataframe back in the list
     conditional.dataset$results[[name]] <- df
   }
 }
+
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
