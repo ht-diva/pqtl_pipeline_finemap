@@ -279,7 +279,7 @@ finemap.cojo <- function(D, cs_threshold=0.99){
 
 my_theme <- function(...){
   theme(
-  legend.position = c(.15, .95),
+  legend.position = c(.15, .65),
   axis.title.x = element_blank(),
   axis.title = element_text(size = 14, face = 2),
   axis.text =  element_text(size = 12, face = 2)
