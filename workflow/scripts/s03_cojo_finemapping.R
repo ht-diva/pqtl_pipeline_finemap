@@ -127,8 +127,6 @@ conditional.dataset <- cojo.ht(
 # create folder to save outputs for each seqid separately
 dir.create(paste0(opt$outdir), recursive = TRUE)
 
-
-# Compute minuslog10pval and minuslog10pvalC
 results_names <- names(conditional.dataset$results)
 
 for (name in results_names) {
@@ -138,13 +136,13 @@ for (name in results_names) {
   # Ensure df is not empty before processing
   if (!is.null(df) && nrow(df) > 0) {
     # Calculate the p-value using the provided formula
-    pval <- 2 * pnorm(mpfr(-abs(df$b / df$se), 120))
+    pval <- 2 * pnorm(ifelse(is.na(df$b / df$se), NA, Rmpfr::mpfr(-abs(df$b / df$se), 120)), lower.tail = FALSE)
     # Calculate the minuslog10pval and add it to the dataframe
     df$pval <- as.numeric(pval)
     df$minuslog10pval <- as.numeric(-log10(pval))
 
     # Calculate the p-value using the provided formula
-    pvalC <- 2 * pnorm(mpfr(-abs(df$bC / df$bC_se), 120))
+    pvalC <- 2 * pnorm(ifelse(is.na(df$bC / df$bC_se), NA, Rmpfr::mpfr(-abs(df$bC / df$bC_se), 120)), lower.tail = FALSE)
     # Calculate the minuslog10pvalC and add it to the dataframe
     df$pvalC <- as.numeric(pvalC)
     df$minuslog10pvalC <- as.numeric(-log10(pvalC))
@@ -153,6 +151,7 @@ for (name in results_names) {
     conditional.dataset$results[[name]] <- df
   }
 }
+
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
