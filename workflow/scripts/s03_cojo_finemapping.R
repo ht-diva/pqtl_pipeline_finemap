@@ -135,15 +135,24 @@ for (name in results_names) {
 
   # Ensure df is not empty before processing
   if (!is.null(df) && nrow(df) > 0) {
-    # Calculate the p-value using the provided formula
-    pval <- 2 * pnorm(ifelse(is.na(df$b / df$se), NA, Rmpfr::mpfr(-abs(df$b / df$se), 120)), lower.tail = FALSE)
-    # Calculate the minuslog10pval and add it to the dataframe
+    # Initialize vectors for storing results
+    pval <- rep(NA, nrow(df))
+    pvalC <- rep(NA, nrow(df))
+
+    # Iterate through each row to handle NA and perform calculations
+    for (i in 1:nrow(df)) {
+      if (!is.na(df$b[i]) && !is.na(df$se[i])) {
+        pval[i] <- 2 * pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120), lower.tail = FALSE)
+      }
+      if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
+        pvalC[i] <- 2 * pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120), lower.tail = FALSE)
+      }
+    }
+
+    # Add the results to the dataframe
     df$pval <- as.numeric(pval)
     df$minuslog10pval <- as.numeric(-log10(pval))
 
-    # Calculate the p-value using the provided formula
-    pvalC <- 2 * pnorm(ifelse(is.na(df$bC / df$bC_se), NA, Rmpfr::mpfr(-abs(df$bC / df$bC_se), 120)), lower.tail = FALSE)
-    # Calculate the minuslog10pvalC and add it to the dataframe
     df$pvalC <- as.numeric(pvalC)
     df$minuslog10pvalC <- as.numeric(-log10(pvalC))
 
@@ -151,7 +160,6 @@ for (name in results_names) {
     conditional.dataset$results[[name]] <- df
   }
 }
-
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
