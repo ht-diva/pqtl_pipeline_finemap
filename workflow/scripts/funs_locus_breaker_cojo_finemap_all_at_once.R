@@ -297,30 +297,37 @@ plot.cojo.ht=function(cojo.ht.obj){
       tmp=cojo.ht.obj$results[[i]]
       tmp$signal=cojo.ht.obj$ind.snps$snp_map[i]
       whole.dataset=rbind(whole.dataset,tmp)
+      
+      # set break points for y-axis
+      max_p <- max(whole.dataset %>% select(!!p.label))
+      max_y <- max_p + (max_p / 10)
+      y_dot <- pretty(range(whole.dataset %>% select(!!p.label)), n = 10)
+      
     }
-
-    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=-log10(p))) +
+    
+    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=!!p.label)) +
       geom_point(alpha=0.6,size=3)+
+      scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=-log10(p),fill=snp_map),size=6,shape=23) +
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=!!p.label,fill=snp_map),size=6,shape=23) +
       guides(fill=guide_legend(title="SNP"))
-
+    
     p2 <- ggplot(whole.dataset,aes(x=bp,y=-log10(pC),color=signal)) +
       facet_grid(signal~.) +
       geom_point(alpha=0.8,size=3) +
       theme_classic() + my_theme() +
       ggtitle("Conditioned results")
-
-    p3 <- p1/p2 + plot_layout(heights = c(1, nrow(cojo.ht.obj$ind.snps)+0.2))
-
+    
+    p3 <- p1/p2 + patchwork::plot_layout(heights = c(1, nrow(cojo.ht.obj$ind.snps)+0.2))
+    
   } else {
-
-    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=-log10(p))) +
+    
+    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=!!p.label)) +
       geom_point(alpha=0.6,size=3)+
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=-log10(p),fill=snp_map),size=6,shape=23)
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=!!p.label,fill=snp_map),size=6,shape=23)
   }
-  (p3)
+  return(p3)
 }
 
 
