@@ -154,7 +154,7 @@ cojo.ht=function(D=dataset_gwas
       filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% #bounding the GWAS to variants only falling at the locus solves the problem of phenotipc variance = 0 by GCTA-cojo
       dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
-      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # NO need to compare the alleles -- if use FREQ or FreqREF rather than !!eaf.label, we get empty bC, bC_SE and pC in COJO *_step1.cma.cojo
+      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
       #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
       dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
@@ -168,7 +168,7 @@ cojo.ht=function(D=dataset_gwas
     dataset.list=list()
     ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
       mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
-      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s", opt$ea_label))), by="SNP")
+      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -190,7 +190,7 @@ cojo.ht=function(D=dataset_gwas
           # Re-add type and sdY/s info, and map SNPs!
           step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
             dplyr::mutate(SNP = as.character(SNP)) %>%  # to ensure class of joint column is the same
-            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s", opt$ea_label))), by="SNP") %>%
+            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
           dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp[i,])
@@ -210,7 +210,7 @@ cojo.ht=function(D=dataset_gwas
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         dplyr::mutate(SNP = as.character(SNP), refA = as.character(refA)) %>% # to ensure class of joint column is the same
-        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s", opt$ea_label))), by=c("SNP", "refA"=opt$ea_label))
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
