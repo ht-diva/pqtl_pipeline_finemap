@@ -142,10 +142,10 @@ for (name in results_names) {
     # Iterate through each row to handle NA and perform calculations
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
-        pval[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120), lower.tail = FALSE))
+        pval[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120)))
       }
       if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        pvalC[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120), lower.tail = FALSE))
+        pvalC[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120)))
       }
     }
 
@@ -160,6 +160,8 @@ for (name in results_names) {
     conditional.dataset$results[[name]] <- df
   }
 }
+  pval <- 2 * pnorm(mpfr(-abs(rep$MetaAnalysis_BETA/rep$MetaAnalysis_SE), 120))
+  rep$MetaAnalysis_minuslog10pval = as.numeric(-log10(pval))
 
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
