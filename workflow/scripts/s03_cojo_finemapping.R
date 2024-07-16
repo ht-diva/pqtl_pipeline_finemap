@@ -160,9 +160,6 @@ for (name in results_names) {
     conditional.dataset$results[[name]] <- df
   }
 }
-  pval <- 2 * pnorm(mpfr(-abs(rep$MetaAnalysis_BETA/rep$MetaAnalysis_SE), 120))
-  rep$MetaAnalysis_minuslog10pval = as.numeric(-log10(pval))
-
 
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
