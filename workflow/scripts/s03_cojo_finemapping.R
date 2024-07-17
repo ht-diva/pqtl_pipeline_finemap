@@ -142,10 +142,10 @@ for (name in results_names) {
     # Iterate through each row to handle NA and perform calculations
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
-        pval[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120)))
+        pval[i] <- 2 * (pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120)))
       }
       if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        pvalC[i] <- 2 * as.numeric(pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120)))
+        pvalC[i] <- 2 * (pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120)))
       }
     }
 
