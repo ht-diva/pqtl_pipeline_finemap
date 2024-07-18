@@ -169,6 +169,7 @@ cojo.ht=function(D=dataset_gwas
     ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
       mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s", opt$p_label))), by="SNP")
+    ind.snp = ind.snp[which(ind.snp[, "p"] < p.thresh), ]
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -179,7 +180,7 @@ cojo.ht=function(D=dataset_gwas
 
         write(ind.snp$SNP[-i],ncol=1,file=paste0(random.number,"_independent.snp"))
         print(ind.snp$SNP[-i])
-
+        
         #system(paste0(gcta.bin," --bfile ",random.number, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
         system(paste0(gcta.bin," --bfile ",random.number, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
