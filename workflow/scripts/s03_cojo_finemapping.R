@@ -126,6 +126,7 @@ conditional.dataset <- cojo.ht(
 
 # create folder to save outputs for each seqid separately
 dir.create(paste0(opt$outdir), recursive = TRUE)
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 
 results_names <- names(conditional.dataset$results)
 
@@ -168,7 +169,7 @@ for (name in results_names) {
   }
 }
 
-saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
+saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_GP_", locus_name, ".rds"))
 cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
