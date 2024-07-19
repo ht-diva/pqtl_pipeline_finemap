@@ -124,12 +124,16 @@ conditional.dataset <- cojo.ht(
   plink.threads = opt$plink2_threads
 )
 
-# create folder to save outputs for each seqid separately
+# Create the output directory if it doesn't exist
 dir.create(paste0(opt$outdir), recursive = TRUE)
+
+# Save the initial dataset
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
 
+# Extract the names of the results dataframes
 results_names <- names(conditional.dataset$results)
 
+# Iterate through each result dataframe
 for (name in results_names) {
   # Access the dataframe
   df <- conditional.dataset$results[[name]]
@@ -143,18 +147,18 @@ for (name in results_names) {
     # Iterate through each row to handle NA and perform calculations
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
-        value <- (df$b[i]/df$se[i])
-        abs_value <- as.character(-abs(value)
+        value <- (df$b[i] / df$se[i])
+        abs_value <- as.character(-abs(value))
         mpfr_value <- Rmpfr::mpfr(abs_value, 120)
         pnorm_value <- pnorm(mpfr_value)
-        pvalue[i] <- 2 * (pnorm_value)
+        pval[i] <- 2 * (pnorm_value)
       }
       if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        valueC <- (df$bC[i]/df$bC_se[i])
-        abs_valueC <- as.character(-abs(valueC)
+        valueC <- (df$bC[i] / df$bC_se[i])
+        abs_valueC <- as.character(-abs(valueC))
         mpfr_valueC <- Rmpfr::mpfr(abs_valueC, 120)
         pnorm_valueC <- pnorm(mpfr_valueC)
-        pvalueC[i] <- 2 * (pnorm_valueC)
+        pvalC[i] <- 2 * (pnorm_valueC)
       }
     }
     # Add the results to the dataframe
@@ -169,8 +173,19 @@ for (name in results_names) {
   }
 }
 
+# Save the updated dataset
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_GP_", locus_name, ".rds"))
-cat(paste0("done.\nTime to draw regional association plot..."))
+
+# Check if the dataset was saved correctly
+if (file.exists(paste0(opt$outdir, "/conditional_data_GP_", locus_name, ".rds"))) {
+  cat("done.\nTime to draw regional association plot...")
+} else {
+  cat("Error: conditional_data_GP was not saved correctly.\n")
+}
+
+
+#saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_GP_", locus_name, ".rds"))
+#cat(paste0("done.\nTime to draw regional association plot..."))
 
 # Plot conditioned GWAS sum stats
 ### have the original loci boundaries in the name, or the slightly enlarged ones?
