@@ -21,6 +21,7 @@ suppressMessages(library(patchwork))
 # suppressMessages(library(EnsDb.Hsapiens.v75))
 # suppressMessages(library(Matrix))
 #suppressMessages(library(dplyr))
+suppressMessages(library(Rmpfr))
 
 
 ### locus.breaker
@@ -102,6 +103,39 @@ locus.breaker.p <- function(
 
 
 
+# Function to handle missing values once computing p-value from cojo results
+safe_pnorm <- function(b, se) {
+  
+  # Ensure the vectors are of the same length
+  if(length(b) != length(se)) {
+    stop("Beta and SE must be of the same length")
+  }
+  
+  k  <- length(b)
+  b  <- as.numeric(b)
+  se <- as.numeric(se)
+  
+  # Initialize result vector with NA values
+  mlogp <- rep(NA, k)
+  
+  # Identify non-missing indices
+  i <- which(!is.na(b) & !is.na(se))
+  
+  # compute z-score and take absolute, raise digits with mpfr, apply pnorm for non-missing values
+  z_score <- b[i] / se[i]
+  z_mpfr <- Rmpfr::mpfr(- abs(z_score), 120)
+  p_mpfr <- 2 * pnorm(z_mpfr)
+  mlog10p <- - log10(p_mpfr)
+  
+  # reformat to mpfr character, then to numeric (don't set digits)
+  mlog10p_mpfr <- Rmpfr::formatMpfr(mlog10p, scientific = TRUE)
+  mlogp[i] <- as.numeric(mlog10p_mpfr)
+
+  return(mlogp)
+}
+
+
+
 ### cojo.ht ###
 ### Performs --cojo-slct first to identify all independent SNPs and --cojo-cond then to condition upon identified SNPs
 cojo.ht=function(D=dataset_gwas
@@ -155,8 +189,7 @@ cojo.ht=function(D=dataset_gwas
       dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
       left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
-      #dplyr::select("SNP","ALLELE0","ALLELE1","FREQ","BETA","SE","LOG10P","N", any_of(c("snp_map","type","sdY","s")))
-      dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","type","sdY","s")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map","sdY")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
@@ -167,8 +200,14 @@ cojo.ht=function(D=dataset_gwas
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
     ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
-      mutate(SNP = as.character(SNP)) %>% # to ensure class of joint column is the same
-      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","type","sdY", "s", opt$p_label))), by="SNP")
+      mutate(
+        SNP = as.character(SNP),       # ensure class of joint column is the same
+        mlogpval  = safe_pnorm(b, se),     # compute unconditional p-value
+        mlogpvalJ = safe_pnorm(bJ, bJ_se), # compute joint p-value
+        #mlogpval  = -log10(pval),      # compute unconditional MLOG10P
+        #mlogpvalJ = -log10(pvalJ)      # compute joint MLOG10P
+      ) %>%
+      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -189,8 +228,14 @@ cojo.ht=function(D=dataset_gwas
         } else {
           # Re-add type and sdY/s info, and map SNPs!
           step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
-            dplyr::mutate(SNP = as.character(SNP)) %>%  # to ensure class of joint column is the same
-            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","type","sdY", "s", opt$p_label))), by="SNP") %>%
+            dplyr::mutate(
+              SNP = as.character(SNP),       # ensure class of joint column is the same
+              mlogpval  = safe_pnorm(b, se),     # compute unconditional p-value
+              mlogpvalC = safe_pnorm(bC, bC_se), # compute conditional p-value
+              #mlogpval  = -log10(pval),      # compute unconditional MLOG10P
+              #mlogpvalC = -log10(pvalC),     # compute conditional MLOG10P
+              ) %>%
+            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","sdY", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
           dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp[i,])
@@ -209,18 +254,26 @@ cojo.ht=function(D=dataset_gwas
       system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
-        dplyr::mutate(SNP = as.character(SNP), refA = as.character(refA)) %>% # to ensure class of joint column is the same
-        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map","type", "sdY", "s", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
+        dplyr::mutate(
+          SNP  = as.character(SNP),  # ensure class of joint column is the same
+          refA = as.character(refA), # ensure class of joint column is the same
+          mlogpval = safe_pnorm(b, se),  # compute unconditional p-value
+          #mlog10pval = -log10(pval)  # compute unconditional MLOG10P
+          ) %>%
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
         step2.res,
         ind.snp %>% dplyr::select(-bJ,-bJ_se,-pJ,-LD_r)
       )
+
       step2.res$cojo_snp <- ind.snp$SNP
       step2.res$bC <- step2.res$b
       step2.res$bC_se <- step2.res$se
       step2.res$pC <- step2.res$p
+      #step2.res$pvalC <-  step2.res$pval
+      step2.res$mlogpvalC <- step2.res$mlogpval
 
       dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp)
       dataset.list$results[[1]]=step2.res
@@ -299,20 +352,20 @@ plot.cojo.ht=function(cojo.ht.obj){
       whole.dataset=rbind(whole.dataset,tmp)
       
       # set break points for y-axis
-      max_p <- max(whole.dataset %>% select(!!p.label))
+      max_p <- max(whole.dataset %>% select(mlogpval))
       max_y <- max_p + (max_p / 10)
-      y_dot <- pretty(range(whole.dataset %>% select(!!p.label)), n = 10)
+      y_dot <- pretty(range(whole.dataset %>% select(mlogpval)), n = 10)
       
     }
     
-    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=!!p.label)) +
+    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=mlogpval)) +
       geom_point(alpha=0.6,size=3)+
       scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=!!p.label,fill=snp_map),size=6,shape=23) +
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlogpval,fill=snp_map),size=6,shape=23) +
       guides(fill=guide_legend(title="SNP"))
     
-    p2 <- ggplot(whole.dataset,aes(x=bp,y=-log10(pC),color=signal)) +
+    p2 <- ggplot(whole.dataset,aes(x=bp,y=mlogpvalC,color=signal)) +
       facet_grid(signal~.) +
       geom_point(alpha=0.8,size=3) +
       theme_classic() + my_theme() +
@@ -322,10 +375,16 @@ plot.cojo.ht=function(cojo.ht.obj){
     
   } else {
     
-    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=!!p.label)) +
+    # set break points for y-axis
+    max_p <- max(cojo.ht.obj$results[[1]] %>% select(mlogpval))
+    max_y <- max_p + (max_p / 10)
+    y_dot <- pretty(range(cojo.ht.obj$results[[1]] %>% select(mlogpval)), n = 10)
+    
+    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=mlogpval)) +
       geom_point(alpha=0.6,size=3)+
+      scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=!!p.label,fill=snp_map),size=6,shape=23)
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlogpval,fill=snp_map),size=6,shape=23)
   }
   return(p3)
 }
