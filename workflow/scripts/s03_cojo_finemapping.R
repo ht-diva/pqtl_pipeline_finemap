@@ -142,13 +142,20 @@ for (name in results_names) {
     # Iterate through each row to handle NA and perform calculations
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
-        pval[i] <- 2 * (pnorm(Rmpfr::mpfr(-abs(df$b[i] / df$se[i]), 120)))
+        value <- (df$b[i]/df$se[i])
+        abs_value <- as.character(-abs(value)
+        mpfr_value <- Rmpfr::mpfr(abs_value, 120)
+        pnorm_value <- pnorm(mpfr_value)
+        pvalue[i] <- 2 * (pnorm_value)
       }
       if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        pvalC[i] <- 2 * (pnorm(Rmpfr::mpfr(-abs(df$bC[i] / df$bC_se[i]), 120)))
+        valueC <- (df$bC[i]/df$bC_se[i])
+        abs_valueC <- as.character(-abs(valueC)
+        mpfr_valueC <- Rmpfr::mpfr(abs_valueC, 120)
+        pnorm_valueC <- pnorm(mpfr_valueC)
+        pvalueC[i] <- 2 * (pnorm_valueC)
       }
     }
-
     # Add the results to the dataframe
     df$pval <- pval
     df$minuslog10pval <- -log10(pval)
