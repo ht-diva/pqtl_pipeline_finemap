@@ -132,7 +132,6 @@ saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus
 
 # Extract the names of the results dataframes
 results_names <- names(conditional.dataset$results)
-
 # Iterate through each result dataframe
 for (name in results_names) {
   # Access the dataframe
@@ -148,30 +147,22 @@ for (name in results_names) {
     for (i in 1:nrow(df)) {
       if (!is.na(df$b[i]) && !is.na(df$se[i])) {
         value <- (df$b[i] / df$se[i])
-        abs_value <- as.character(-abs(value))
+        abs_value <- as.numeric(-abs(value))
         mpfr_value <- Rmpfr::mpfr(abs_value, 120)
         pnorm_value <- pnorm(mpfr_value)
         pval[i] <- 2 * (pnorm_value)
-      }
-      if (!is.na(df$bC[i]) && !is.na(df$bC_se[i])) {
-        valueC <- (df$bC[i] / df$bC_se[i])
-        abs_valueC <- as.character(-abs(valueC))
-        mpfr_valueC <- Rmpfr::mpfr(abs_valueC, 120)
-        pnorm_valueC <- pnorm(mpfr_valueC)
-        pvalC[i] <- 2 * (pnorm_valueC)
       }
     }
     # Add the results to the dataframe
     df$pval <- pval
     df$minuslog10pval <- -log10(pval)
 
-    df$pvalC <- pvalC
-    df$minuslog10pvalC <- -log10(pvalC)
-
     # Store the updated dataframe back in the list
     conditional.dataset$results[[name]] <- df
   }
 }
+
+
 
 # Save the updated dataset
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_GP_", locus_name, ".rds"))
