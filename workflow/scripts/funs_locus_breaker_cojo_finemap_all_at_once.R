@@ -104,7 +104,7 @@ locus.breaker.p <- function(
 
 
 # Function to handle missing values once computing p-value from cojo results
-safe_pnorm <- function(b, se) {
+safe_pnorm <- function(b, se, p=FALSE) {
   
   # Ensure the vectors are of the same length
   if(length(b) != length(se)) {
@@ -116,7 +116,7 @@ safe_pnorm <- function(b, se) {
   se <- as.numeric(se)
   
   # Initialize result vector with NA values
-  mlogp <- rep(NA, k)
+  result <- rep(NA, k)
   
   # Identify non-missing indices
   i <- which(!is.na(b) & !is.na(se))
@@ -127,13 +127,18 @@ safe_pnorm <- function(b, se) {
   p_mpfr <- 2 * pnorm(z_mpfr)
   mlog10p <- - log10(p_mpfr)
   
-  # reformat to mpfr character, then to numeric (don't set digits)
-  mlog10p_mpfr <- Rmpfr::formatMpfr(mlog10p, scientific = TRUE)
-  mlogp[i] <- as.numeric(mlog10p_mpfr)
+  # print p-value in character format and mlog10p in numeric
+  if(p==TRUE){
+    # reformat to mpfr character, then to numeric (don't set digits for MLOG10P)
+    mlog10p_mpfr <- Rmpfr::formatMpfr(p_mpfr, scientific = TRUE, digits = 6)
+    result[i] <- mlog10p_mpfr
+  } else {
+    mlog10p_mpfr <- Rmpfr::formatMpfr(mlog10p, scientific = TRUE)
+    result[i] <- as.numeric(mlog10p_mpfr)
+  }
 
-  return(mlogp)
+  return(result)
 }
-
 
 
 ### cojo.ht ###
@@ -197,14 +202,17 @@ cojo.ht=function(D=dataset_gwas
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
-    ind.snp=fread(paste0(random.number,"_step1.jma.cojo")) %>%
-      mutate(
-        SNP = as.character(SNP),       # ensure class of joint column is the same
-        mlogpval  = safe_pnorm(b, se),     # compute unconditional p-value
-        mlogpvalJ = safe_pnorm(bJ, bJ_se), # compute joint p-value
-        #mlogpval  = -log10(pval),      # compute unconditional MLOG10P
-        #mlogpvalJ = -log10(pvalJ)      # compute joint MLOG10P
+    ind.snp=data.table::fread(paste0(random.number,"_step1.jma.cojo")) %>%
+      dplyr::mutate(
+        SNP = as.character(SNP),   # ensure class of joint column is the same
+        p_org = p,                 # keep original p  from GCTA
+        pJ_org = pJ,               # keep original pJ from GCTA
+        p  = safe_pnorm(b, se, p = TRUE),     # compute unconditional p-value
+        pJ = safe_pnorm(bJ, bJ_se, p = TRUE), # compute joint p-value
+        mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
+        mlog10pJ = safe_pnorm(bJ, bJ_se)      # compute joint MLOG10P
       ) %>%
+      dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
@@ -227,12 +235,15 @@ cojo.ht=function(D=dataset_gwas
           # Re-add type and sdY/s info, and map SNPs!
           step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
             dplyr::mutate(
-              SNP = as.character(SNP),       # ensure class of joint column is the same
-              mlogpval  = safe_pnorm(b, se),     # compute unconditional p-value
-              mlogpvalC = safe_pnorm(bC, bC_se), # compute conditional p-value
-              #mlogpval  = -log10(pval),      # compute unconditional MLOG10P
-              #mlogpvalC = -log10(pvalC),     # compute conditional MLOG10P
-              ) %>%
+              SNP = as.character(SNP),   # ensure class of joint column is the same
+              p_org = p,                 # keep original p  from GCTA
+              pC_org = pC,               # keep original pC from GCTA
+              p  = safe_pnorm(b, se, p = TRUE),     # compute unconditional p-value
+              pC = safe_pnorm(bC, bC_se, p = TRUE), # compute joint p-value
+              mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
+              mlog10pC = safe_pnorm(bC, bC_se)      # compute joint MLOG10P
+            ) %>%
+            dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pC, mlog10pC) %>%  # tidying columns order
             left_join(D %>% dplyr::select(SNP, any_of(c("snp_map","sdY", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
@@ -255,9 +266,11 @@ cojo.ht=function(D=dataset_gwas
         dplyr::mutate(
           SNP  = as.character(SNP),  # ensure class of joint column is the same
           refA = as.character(refA), # ensure class of joint column is the same
-          mlogpval = safe_pnorm(b, se),  # compute unconditional p-value
-          #mlog10pval = -log10(pval)  # compute unconditional MLOG10P
+          p_org = p,                 # keep original p  from GCTA
+          p  = safe_pnorm(b, se, p = TRUE),     # compute unconditional p-value
+          mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
           ) %>%
+        dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p) %>%  # tidying columns order
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
@@ -270,8 +283,7 @@ cojo.ht=function(D=dataset_gwas
       step2.res$bC <- step2.res$b
       step2.res$bC_se <- step2.res$se
       step2.res$pC <- step2.res$p
-      #step2.res$pvalC <-  step2.res$pval
-      step2.res$mlogpvalC <- step2.res$mlogpval
+      step2.res$mlog10pC <- step2.res$mlog10p
 
       dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp)
       dataset.list$results[[1]]=step2.res
@@ -350,20 +362,20 @@ plot.cojo.ht=function(cojo.ht.obj){
       whole.dataset=rbind(whole.dataset,tmp)
       
       # set break points for y-axis
-      max_p <- max(whole.dataset %>% select(mlogpval))
+      max_p <- max(whole.dataset %>% select(mlog10p))
       max_y <- max_p + (max_p / 10)
-      y_dot <- pretty(range(whole.dataset %>% select(mlogpval)), n = 10)
+      y_dot <- pretty(range(whole.dataset %>% select(mlog10p)), n = 10)
       
     }
     
-    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=mlogpval)) +
+    p1 <- ggplot(cojo.ht.obj$results[[i]], aes(x=bp,y=mlog10p)) +
       geom_point(alpha=0.6,size=3)+
       scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlogpval,fill=snp_map),size=6,shape=23) +
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=snp_map),size=6,shape=23) +
       guides(fill=guide_legend(title="SNP"))
     
-    p2 <- ggplot(whole.dataset,aes(x=bp,y=mlogpvalC,color=signal)) +
+    p2 <- ggplot(whole.dataset,aes(x=bp,y=mlog10pC,color=signal)) +
       facet_grid(signal~.) +
       geom_point(alpha=0.8,size=3) +
       theme_classic() + my_theme() +
@@ -374,15 +386,15 @@ plot.cojo.ht=function(cojo.ht.obj){
   } else {
     
     # set break points for y-axis
-    max_p <- max(cojo.ht.obj$results[[1]] %>% select(mlogpval))
+    max_p <- max(cojo.ht.obj$results[[1]] %>% select(mlog10p))
     max_y <- max_p + (max_p / 10)
-    y_dot <- pretty(range(cojo.ht.obj$results[[1]] %>% select(mlogpval)), n = 10)
+    y_dot <- pretty(range(cojo.ht.obj$results[[1]] %>% select(mlog10p)), n = 10)
     
-    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=mlogpval)) +
+    p3 <- ggplot(cojo.ht.obj$results[[1]], aes(x=bp,y=mlog10p)) +
       geom_point(alpha=0.6,size=3)+
       scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlogpval,fill=snp_map),size=6,shape=23)
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=snp_map),size=6,shape=23)
   }
   return(p3)
 }
