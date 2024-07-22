@@ -176,8 +176,7 @@ cojo.ht=function(D=dataset_gwas
     write(D$SNP, ncol=1,file=paste0(random.number,".snp.list"))
     write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
-# Compute allele frequency with Plink
-    #system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --maf ", maf.thresh, " --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+# Compute allele frequency with Plink -- we removed "--maf ", maf.thresh, from original script
     system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
 
     freqs <- fread(paste0(random.number,".gcount"))
@@ -193,9 +192,8 @@ cojo.ht=function(D=dataset_gwas
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
-# step1 determine independent snps
+# step1 determine independent snps -- we removed "--maf ", maf.thresh, from original script
   system(paste0(gcta.bin," --bfile ", random.number, " --cojo-p ", p.thresh, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
-  # system(paste0(gcta.bin," --bfile ", bfile, locus_chr, " --cojo-p ", p.thresh, " --maf ", maf.thresh, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
@@ -219,7 +217,7 @@ cojo.ht=function(D=dataset_gwas
         write(ind.snp$SNP[-i],ncol=1,file=paste0(random.number,"_independent.snp"))
         print(ind.snp$SNP[-i])
 
-        #system(paste0(gcta.bin," --bfile ",random.number, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+        #Removing "--maf ", maf.thresh, from original script
         system(paste0(gcta.bin," --bfile ",random.number, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
         #### STOP ANALYSIS FOR THAT TOP SNP IN CASE OF COLLINEARITY
@@ -250,7 +248,7 @@ cojo.ht=function(D=dataset_gwas
       ### NB: COJO here is performed ONLY for formatting sakes - No need to condition if only one signal is found!!
 
       write(ind.snp$SNP,ncol=1,file=paste0(random.number,"_independent.snp"))
-      #system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --maf ", maf.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      #Removing "--maf ", maf.thresh, from original script
       system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
