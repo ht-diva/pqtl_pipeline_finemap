@@ -213,6 +213,7 @@ cojo.ht=function(D=dataset_gwas
         mlog10pJ = safe_pnorm(bJ, bJ_se)      # compute joint MLOG10P
       ) %>%
       dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
+      filter(! mlog10p < p.thresh) %>%   # avoid including any non-significant independent variant to conditional model  
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map","sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
