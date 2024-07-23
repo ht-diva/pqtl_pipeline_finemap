@@ -126,20 +126,8 @@ conditional.dataset <- cojo.ht(
 
 # create folder to save outputs for each seqid separately
 dir.create(paste0(opt$outdir), recursive = TRUE)
-
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, ".rds"))
-cat(paste0("done.\nTime to draw regional association plot..."))
 
-# Plot conditioned GWAS sum stats
-### have the original loci boundaries in the name, or the slightly enlarged ones?
-pdf(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=5*nrow(conditional.dataset$ind.snps), width=10) 
-plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
-dev.off()
-
-plt_loci <- plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
-ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4.5*nrow(conditional.dataset$ind.snps), width=10, dpi = 300, units = "in", limitsize = FALSE)
-
-cat("created!\n")
 
 ####################
 # Locus breaker BIS
@@ -174,6 +162,24 @@ cat(paste0("done."))
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
+################
+# Regional Plots
+################
+
+cat(paste0("done.\nTime to draw regional association plot..."))
+
+# Plot conditioned GWAS sum stats
+### have the original loci boundaries in the name, or the slightly enlarged ones?
+pdf(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.pdf"), height=5*nrow(conditional.dataset$ind.snps), width=10) 
+plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
+dev.off()
+
+
+png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4.5*nrow(conditional.dataset$ind.snps), width=10, res = 300, units = "in")
+plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
+dev.off()
+
+cat("created!\n")
 
 
 #############
