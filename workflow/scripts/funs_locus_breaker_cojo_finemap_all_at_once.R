@@ -24,6 +24,79 @@ suppressMessages(library(patchwork))
 suppressMessages(library(Rmpfr))
 
 
+## Source function for locus.breaker: works with -log10p
+locus.breaker <- function(
+    res,
+    p.sig     = -log10(5e-08),
+    p.limit   = -log10(1e-06),
+    hole.size = 250000,
+    p.label   = "LOG10P",
+    chr.label = "CHROM",
+    pos.label = "GENPOS"){
+
+  res <- as.data.frame(res)
+  res = res[order(as.numeric(res[, chr.label]), as.numeric(res[,pos.label])), ]
+  res = res[which(res[, p.label] > p.limit), ]
+  trait.res = c()
+
+  for(j in unique(res[,chr.label])) {
+    res.chr = res[which(res[, chr.label] == j), ]
+    if (nrow(res.chr) > 1) {
+      holes = res.chr[, pos.label][-1] - res.chr[, pos.label][-length(res.chr[,pos.label])]
+      gaps = which(holes > hole.size)
+      if (length(gaps) > 0) {
+        for (k in 1:(length(gaps) + 1)) {
+          if (k == 1) {
+            res.loc = res.chr[1:(gaps[k]), ]
+          } 
+          else if (k == (length(gaps) + 1)) {
+            res.loc = res.chr[(gaps[k - 1] + 1):nrow(res.chr), ]
+          } else {
+            res.loc = res.chr[(gaps[k - 1] + 1):(gaps[k]), ]
+          }
+          if (max(res.loc[, p.label]) > p.sig) {
+            start.pos = min(res.loc[, pos.label], na.rm = T)
+            end.pos   = max(res.loc[, pos.label], na.rm = T)
+            chr = j
+            best.snp  = res.loc[which.max(res.loc[, p.label]), ]
+            line.res  = c(chr, start.pos, end.pos, unlist(best.snp))
+            trait.res = rbind(trait.res, line.res)
+          }
+        }
+      } else {
+        res.loc = res.chr
+        if (max(res.loc[, p.label]) > p.sig) {
+          start.pos = min(res.loc[, pos.label], na.rm = T)
+          end.pos   = max(res.loc[, pos.label], na.rm = T)
+          chr = j
+          best.snp  = res.loc[which.max(res.loc[, p.label]), ]
+          line.res  = c(chr, start.pos, end.pos, unlist(best.snp))
+          trait.res = rbind(trait.res, line.res)
+        }
+      }
+    }
+    else if (nrow(res.chr) == 1) {
+      res.loc = res.chr
+      if (max(res.loc[, p.label]) > p.sig) {
+        start.pos = min(res.loc[, pos.label], na.rm = T)
+        end.pos   = max(res.loc[, pos.label], na.rm = T)
+        chr = j
+        best.snp  = res.loc[which.max(res.loc[, p.label]), ]
+        line.res  = c(chr, start.pos, end.pos, unlist(best.snp))
+        trait.res = rbind(trait.res, line.res)
+      }
+    }
+  }
+  if(!is.null(trait.res)){
+    trait.res = as.data.frame(trait.res, stringsAsFactors = FALSE)
+    trait.res = trait.res[, -(which(names(trait.res) == chr.label))]
+    names(trait.res)[1:3] = c("chr", "start", "end")
+    rownames(trait.res) <- NULL
+  }
+  return(trait.res)
+}
+
+
 ### locus.breaker
 locus.breaker.p <- function(
     res,
@@ -213,7 +286,7 @@ cojo.ht=function(D=dataset_gwas
         mlog10pJ = safe_pnorm(bJ, bJ_se)      # compute joint MLOG10P
       ) %>%
       dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
-      filter(! mlog10p < p.thresh) %>%   # avoid including any non-significant independent variant to conditional model  
+      filter(mlog10p > - log10(p.thresh)) %>%   # avoid including any non-significant independent variant to conditional model  
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map", "type", "sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))

@@ -139,7 +139,7 @@ dev.off()
 plt_loci <- plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4.5*nrow(conditional.dataset$ind.snps), width=10, dpi = 300, units = "in", limitsize = FALSE)
 
-cat("created!")
+cat("created!\n")
 
 ####################
 # Locus breaker BIS
@@ -150,16 +150,16 @@ cat(paste0("\nApply locus breaker and widen the locus..."))
 conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
 
   ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
-  if(isTRUE(any(x %>% pull(pC) > -log10(opt$p_thresh4)))){
-    new_bounds <- locus.breaker.p(
+  if(isTRUE(any(x %>% pull(mlog10pC) > -log10(opt$p_thresh4)))){
+    new_bounds <- locus.breaker(
       x,
-      p.sig = as.numeric(opt$p_thresh4),
-      p.limit = as.numeric(opt$p_thresh3),
+      p.sig   = as.numeric(-log10(opt$p_thresh4)),
+      p.limit = as.numeric(-log10(opt$p_thresh3)),
       hole.size = opt$hole,
-      p.label = "pC",
+      p.label   = "mlog10pC",
       chr.label = "Chr",
       pos.label = "bp")
-
+ 
     # Slightly enlarge locus by 200kb!
     new_bounds <- new_bounds %>% dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
 
@@ -200,9 +200,12 @@ fwrite(conditional.dataset$ind.snps, paste0(opt$phenotype_id, "_locus_chr", locu
 
 cat("done.\nSave other lABF results...")
 
+# create folder to save outputs for each seqid separately
+dir.create(paste0(opt$outdir, "/finemaping/"), recursive = TRUE)
+
 ## Save lABF of each conditional dataset
 lapply(finemap.res, function(x){
-  sp_file_name <- paste0(opt$phenotype_id, "_", unique(x$cojo_snp), "_locus_chr", locus_name)
+  sp_file_name <- paste0(opt$phenotype_id, "/finemaping/", unique(x$cojo_snp), "_locus_chr", locus_name)
   # .rds object collecting 1) lABF, 2) beta, 3) pos for all SNPs, 3) list of SNPs in the credible set
   saveRDS(x, file=paste0(sp_file_name, "_finemap.rds")) ### cojo_snp reported in the file name   #x %>% select(-cojo_snp)
   # .tsv with 1) study id and trait (if molQTL) locus info, 2) list of SNPs in the 99% credible set, 3) path and name of correspondent .rds file and 4) path and name of correspondent ind_snps.tsv table
