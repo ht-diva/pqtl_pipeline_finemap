@@ -204,8 +204,6 @@ cat(paste0("done."))
 
 cat("\nSaving independent signals...")
 ## Save independent association signals
-core_file_name <- paste0(opt$phenotype_id)
-
 fwrite(conditional.dataset$ind.snps, paste0(opt$phenotype_id, "_locus_chr", locus_name,"_ind_snps.tsv"), sep="\t", quote=F, na=NA)
 
 cat("done.\nSave other lABF results...")
@@ -225,11 +223,10 @@ lapply(finemap.res, function(x){
     phenotype_id = opt$phenotype_id,
     credible_set = paste0(x %>% filter(is_cs==TRUE) %>% pull(snp), collapse=","),
     #### Nextflow working directory "work" hard coded - KEEP in mind!! ####
-    path_rds = paste0("/results/finemap/", sp_file_name, "_finemap.rds"),
-    path_ind_snps = paste0("/results/gwas_and_loci_tables/", opt$phenotype_id, "_final_ind_snps_table.tsv")
+    path_rds      = paste0(sp_file_name, "_finemap.rds"),
+    path_ind_snps = paste0(sp_file_name, "_final_ind_snps_table.tsv")
   )
-  fwrite(tmp, paste0(sp_file_name, "_coloc_info_table.tsv"),
-         sep="\t", quote=F, col.names = F, na=NA)
+  fwrite(tmp, paste0(sp_file_name, "_coloc_info_table.tsv"), sep="\t", quote=F, col.names = F, na=NA)
 })
 
 cat("done!\n\n")
