@@ -179,7 +179,7 @@ plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr"
 dev.off()
 
 
-png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4.5*nrow(conditional.dataset$ind.snps), width=10, res = 300, units = "in")
+png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4.5*nrow(conditional.dataset$ind.snps), width=10, res = 400, units = "in")
 plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr", locus_name))
 dev.off()
 
