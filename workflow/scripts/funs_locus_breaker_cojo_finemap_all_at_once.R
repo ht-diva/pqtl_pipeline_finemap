@@ -226,7 +226,6 @@ cojo.ht=function(D=dataset_gwas
                 , plink.threads=opt$plink2_threads
                 , gcta.bin="/ssu/gassu/software/GCTA/1.94.0beta/gcta64"
                 , bfile="/processing_data/shared_datasets/ukbiobank/genotypes/LD_reference/p01_output/ukbb_all_30000_random_unrelated_white_british"
-                , maf.thresh=1e-4
                 , chr.label=opt$chr_label
                 , pos.label=opt$pos_label
                 , ea.label=opt$ea_label
