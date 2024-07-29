@@ -191,8 +191,8 @@ safe_pnorm <- function(b, se, p=FALSE) {
   # Initialize result vector with NA values
   result <- rep(NA, k)
   
-  # Identify non-missing indices
-  i <- which(!is.na(b) & !is.na(se))
+    # Identify non-missing and non-zero indices
+  i <- which(!is.na(b) & !is.na(se) & se != 0)
   
   # compute z-score and take absolute, raise digits with mpfr, apply pnorm for non-missing values
   z_score <- b[i] / se[i]
