@@ -161,6 +161,13 @@ conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 # delete the independent SNPs whose conditional data not falling in loci boundaries
 conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
 
+# Quit if no signal remain after removing SNPs not included in loci boundaries
+if (nrow(conditional.dataset$ind.snps) == 0) {
+  flag_file <- paste0(opt$phenotype_id, "_signal_discarded.txt")
+  cat("No signal remain after filter conditional datasets of", basename(opt$phenotype_id), "at locus", locus_name, "for conditional P-value <", opt$p_thresh4, "\n", file = flag_file)
+  quit(status = 0)  # Exit the script silently
+}
+
 # Save updated conditional data
 saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
