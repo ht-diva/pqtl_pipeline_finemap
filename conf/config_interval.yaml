@@ -2,7 +2,7 @@ path_code: "workflow/scripts/"
 path_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/bed/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 
 sumstats_path: conf/path_interval_one.txt
-workspace_path: "results/int"
+workspace_path: "results/interval_nick"
 
 labels:
   chr_label: "CHROM"
