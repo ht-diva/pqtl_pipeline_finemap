@@ -1,4 +1,5 @@
 suppressMessages(library(optparse))
+suppressMessages(library(ragg))
 #scipen=0
 
 # Get arguments specified in the sbatch
@@ -184,9 +185,12 @@ plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste("Locus chr"
 dev.off()
 
 
-png(paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4*nrow(conditional.dataset$ind.snps), width=15, res = 400, units = "in")
-plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste0("Locus chr", locus_name))
-dev.off()
+plt_loci <- plot.cojo.ht(conditional.dataset) + patchwork::plot_annotation(paste0("Locus chr", locus_name))
+# Setting try() to avoid error: 
+# One or both dimensions exceed the maximum (50000px). Use `options(ragg.max_dim = ...)` to change the max; Warning: May cause the R session to crash
+try(suppressMessages(suppressWarnings(
+  ggsave(plt_loci, filename = paste0(opt$outdir, "/locus_chr", locus_name, "_conditioned_loci.png"), height=4+2*nrow(conditional.dataset$ind.snps), width=12, dpi = 300, units = "in", limitsize = FALSE)
+)))
 
 cat("created!\n")
 
