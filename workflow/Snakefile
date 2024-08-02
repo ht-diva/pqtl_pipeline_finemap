@@ -10,7 +10,7 @@ containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:44f3df5"
 
 
 # read the configuration file
-configfile: "conf/config_interval.yaml"
+configfile: "conf/config_finemap.yaml"
 
 
 include: "rules/common.smk"
