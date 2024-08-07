@@ -160,7 +160,7 @@ cat(paste0("done."))
 ## Remove eventually empty dataframes (caused by p_thresh4 filter)
 conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
 # delete the independent SNPs whose conditional data not falling in loci boundaries
-conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
+#conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
 
 # Quit if no signal remain after removing SNPs not included in loci boundaries
 if (nrow(conditional.dataset$ind.snps) == 0) {
