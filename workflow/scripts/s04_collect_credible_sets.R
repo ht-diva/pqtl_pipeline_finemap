@@ -10,18 +10,30 @@ file_path <- snakemake@output[["ofile"]]
 
 #--------------#
 # Load-in COJO results for all proteins sequence
-credible_set_list <- lapply(
-  sets_path, function(path) {
-    base_path = dirname(path)
-    file_name = basename(path)
-    seqid = stringr::str_remove(file_name, ".sentinel") # extract the protein sequence id and remove file format
-    list.files(
-      pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"), # pattern of output file name containing independents snps
-      path = base_path, # the path where the independents snps file live
-      recursive = TRUE, # to show the files in subdirectories or subfolders
-      full.names = TRUE # to show full path
-      )}) %>% 
-  unlist()
+# credible_set_list <- lapply(
+#   sets_path, function(path) {
+#     base_path = dirname(path)
+#     file_name = basename(path)
+#     seqid = stringr::str_remove(file_name, ".sentinel") # extract the protein sequence id and remove file format
+#     list.files(
+#       pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"), # pattern of output file name containing independents snps
+#       path = base_path, # the path where the independents snps file live
+#       recursive = TRUE, # to show the files in subdirectories or subfolders
+#       full.names = TRUE # to show full path
+#       )}) %>% 
+#   unlist()
+
+# the path where the independents snps file live
+exmpl_path <- as.character(stringr::str_split_fixed(sets_path, ",", 2)[,1])
+pcmd <- dirname(exmpl_path)
+
+# Load-in COJO results for all proteins sequence
+credible_set_list <- list.files(
+  pattern = paste0("seq.(\\d+).(\\d+)_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"),
+  path = pcmd,      # the path where the independents snps file live
+  recursive = TRUE, # to show the files in subdirectories or subfolders
+  full.names = TRUE # to show full path
+)
 
 #--------------#
 # Merge them
