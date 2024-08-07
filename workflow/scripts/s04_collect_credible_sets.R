@@ -52,7 +52,11 @@ cojo_meta <- tibble(
     }
     )
   )
-) %>% arrange(Chr)
+)
+
+cojo_meta <- cojo_meta %>%
+  arrange(Chr, bp) %>%
+  mutate(nlrp12 = ifelse(Chr == 19 & !(bp < 54296995 | bp > 54327657)) #NLRP12 gene maps to 54,296,995-54,327,657 in GRCh37 coordinates.
 
 #--------------#
 # save the joint results
