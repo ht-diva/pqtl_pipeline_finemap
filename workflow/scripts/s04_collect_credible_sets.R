@@ -7,33 +7,26 @@ library(dplyr)
 # taking variants file as input
 sets_path <- snakemake@input
 file_path <- snakemake@output[["ofile"]]
+NLRP12 <- snakemake@config[["NLRP12"]]
+build <- snakemake@config[["Build"]]
+
+NLRP12 <- toupper(NLRP12)
+build <- as.character(build)
 
 #--------------#
 # Load-in COJO results for all proteins sequence
-# credible_set_list <- lapply(
-#   sets_path, function(path) {
-#     base_path = dirname(path)
-#     file_name = basename(path)
-#     seqid = stringr::str_remove(file_name, ".sentinel") # extract the protein sequence id and remove file format
-#     list.files(
-#       pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"), # pattern of output file name containing independents snps
-#       path = base_path, # the path where the independents snps file live
-#       recursive = TRUE, # to show the files in subdirectories or subfolders
-#       full.names = TRUE # to show full path
-#       )}) %>% 
-#   unlist()
-
-# the path where the independents snps file live
-exmpl_path <- as.character(stringr::str_split_fixed(sets_path, ",", 2)[,1])
-pcmd <- dirname(exmpl_path)
-
-# Load-in COJO results for all proteins sequence
-credible_set_list <- list.files(
-  pattern = paste0("seq.(\\d+).(\\d+)_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"),
-  path = pcmd,      # the path where the independents snps file live
-  recursive = TRUE, # to show the files in subdirectories or subfolders
-  full.names = TRUE # to show full path
-)
+credible_set_list <- lapply(
+  sets_path, function(path) {
+    base_path = dirname(path)
+    file_name = basename(path)
+    seqid = stringr::str_remove(file_name, ".sentinel") # extract the protein sequence id and remove file format
+    list.files(
+      pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"), # pattern of output file name containing independents snps
+      path = base_path, # the path where the independents snps file live
+      recursive = TRUE, # to show the files in subdirectories or subfolders
+      full.names = TRUE # to show full path
+      )}) %>% 
+  unlist()
 
 #--------------#
 # Merge them
@@ -52,11 +45,27 @@ cojo_meta <- tibble(
     }
     )
   )
-)
+) %>%
+arrange(Chr, bp)
 
-cojo_meta <- cojo_meta %>%
-  arrange(Chr, bp) %>%
-  mutate(nlrp12 = ifelse(Chr == 19 & !(bp < 54296995 | bp > 54327657), "Yes", "No")) #NLRP12 gene maps to 54,296,995-54,327,657 in GRCh37 coordinates.
+# take the proper boundaries respect to the build
+if (NLRP12 == "YES" & build == "37") {
+  #NLRP12 gene maps to 54,296,995-54,327,657 in GRCh37 coordinates.
+  pos.start <- 54296995
+  pos.end   <- 54327657
+} else if (NLRP12 == "YES" & build == "38") {
+  pos.start <- 00000000
+  pos.end   <- 00000000
+}
+
+# check if the user asks to define an indicator function
+if (NLRP12 == "YES" & build == "37") {
+  cojo_meta <- cojo_meta %>%
+    mutate(nlrp12 = ifelse(Chr == 19 & !(bp < pos.start | bp > pos.end), "Yes", "No"))
+  cat("SNPs in the NLRP12 are indicated from the list of target SNPs.")
+} else {
+  cat("No filter was applied on the list of target SNPs.")
+}
 
 #--------------#
 # save the joint results
