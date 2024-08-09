@@ -143,7 +143,8 @@ cojo.ht=function(D=dataset_gwas
                 , locus_chr=opt$chr
                 , locus_start=opt$start
                 , locus_end=opt$end
-                , p.thresh=1e-4
+                , p.cojo=1e-4
+                , p.jumper=1e-4
                 , plink.bin= "/ssu/gassu/software/plink/2.00_20211217/plink2"
                 , plink.mem=opt$plink2_mem
                 , plink.threads=opt$plink2_threads
@@ -193,7 +194,7 @@ cojo.ht=function(D=dataset_gwas
   cat("\n\nMerge with LD reference...done.\n\n")
 
 # step1 determine independent snps -- we removed "--maf ", maf.thresh, from original script
-  system(paste0(gcta.bin," --bfile ", random.number, " --cojo-p ", p.thresh, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
+  system(paste0(gcta.bin," --bfile ", random.number, " --cojo-p ", p.cojo, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
@@ -208,7 +209,7 @@ cojo.ht=function(D=dataset_gwas
         mlog10pJ = safe_pnorm(bJ, bJ_se)      # compute joint MLOG10P
       ) %>%
       dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
-      filter(mlog10p > - log10(p.thresh)) %>%   # avoid including any non-significant independent variant to conditional model  
+      filter(mlog10p > - log10(p.jumper)) %>%   # avoid including any non-significant independent variant to conditional model  
       left_join(D %>% dplyr::select(SNP,any_of(c("snp_map", "type", "sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
@@ -256,7 +257,7 @@ cojo.ht=function(D=dataset_gwas
 
       write(ind.snp$SNP,ncol=1,file=paste0(random.number,"_independent.snp"))
       #Removing "--maf ", maf.thresh, from original script
-      system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.thresh, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.cojo, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         dplyr::mutate(

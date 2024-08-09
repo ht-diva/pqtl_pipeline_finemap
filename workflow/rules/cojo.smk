@@ -13,8 +13,10 @@ rule run_cojo:
         geno=config.get("path_geno"),
         ofile=ws_path("cojo/{seqid}"),
         ppp=config.get("thresholds").get("ppp"),
-        p3=config.get("thresholds").get("p3"),
-        p4=config.get("thresholds").get("p4"),
+        p3=config.get("thresholds").get("p_cojo"),
+        p4=config.get("thresholds").get("p_jumper"),
+        p5=config.get("thresholds").get("p_signif"),
+        p6=config.get("thresholds").get("p_limit"),
         p_label=config.get("labels").get("p_label"),
         chr_label=config.get("labels").get("chr_label"),
         pos_label=config.get("labels").get("pos_label"),
@@ -58,8 +60,10 @@ rule run_cojo:
                 --end   "$end"  \
                 --bfile {params.geno} \
                 --cs_thresh {params.ppp}  \
-                --p_thresh3 {params.p3}  \
-                --p_thresh4 {params.p4}  \
+                --p_cojo   {params.p3}  \
+                --p_jumper {params.p4}  \
+                --p_signif {params.p5}  \
+                --p_limit  {params.p6}  \
                 --outdir {params.ofile} \
                 --plink2_mem {resources.mem_mb}  \
                 --plink2_threads {resources.threads} \

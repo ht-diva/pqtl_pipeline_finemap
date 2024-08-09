@@ -1,6 +1,4 @@
 suppressMessages(library(optparse))
-suppressMessages(library(ragg))
-#scipen=0
 
 # Get arguments specified in the sbatch
 option_list <- list(
@@ -11,11 +9,9 @@ option_list <- list(
   make_option("--phenotype_id", default=NULL, help="Trait for which the locus boundaries have been identified"),
   make_option("--dataset_gwas", default=NULL, help="GENOME-WIDE munged and aligned dataset file"),
   make_option("--mapping", default=NULL, help="Mapping file containing variants IDs matching with genotype bfile"),
-  make_option("--p_thresh3", default=1e-04, help="Noise p-values threshold for COJO"),
   make_option("--bfile", default=NULL, help="Path and prefix name of custom LD bfiles (PLINK format .bed .bim .fam)"),
   make_option("--plink2_bin", default="/ssu/gassu/software/plink/2.00_20211217/plink2", help="Path to plink2 software"),
   make_option("--gcta_bin", default="/ssu/gassu/software/GCTA/1.94.0beta/gcta64", help="Path to GCTA software"),
-  make_option("--p_thresh4", default=1e-06, help="P-value significant threshold for redefining loci boundaries post-COJO"),
   make_option("--hole", default=250000, help="Minimum pair-base distance between SNPs in different loci"),
   make_option("--cs_thresh", default=NULL, help="Percentage of credible set"),
   make_option("--outdir", default=NULL, help="Output directory"),
@@ -31,7 +27,10 @@ option_list <- list(
   make_option("--se_label", default=NULL, help="Label of SE column"),
   make_option("--beta_label", default=NULL, help="Label of beta column"),
   make_option("--n_label", default=NULL, help="Label of sample size column"),
-  make_option("--key_label", default=NULL, help="Label of SNPid column in mapping file")
+  make_option("--p_cojo", default=1e-04, help="P-value significant threshold for COJO (--cojo-p)"),
+  make_option("--p_jumper", default=1e-04, help="P-value threshold for non-significant SNP turning significant at joint model in COJO"),
+  make_option("--p_signif", default=1e-06, help="P-value significant threshold for top conditional SNP post-COJO"),
+  make_option("--p_limit",  default=1e-04, help="P-value threshold for redefining locus borders post-COJO")
 );
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -115,7 +114,8 @@ conditional.dataset <- cojo.ht(
   locus_chr = opt$chr,
   locus_start = opt$start,
   locus_end = opt$end,
-  p.thresh = as.numeric(opt$p_thresh3),
+  p.cojo = as.numeric(opt$p_cojo),
+  p.jumper = as.numeric(opt$p_jumper),
   bfile = opt$bfile,
   gcta.bin = opt$gcta_bin,
   plink.bin = opt$plink2_bin,
@@ -137,11 +137,11 @@ cat(paste0("\nApply locus breaker and widen the locus..."))
 conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
 
   ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
-  if(isTRUE(any(x %>% pull(mlog10pC) > -log10(opt$p_thresh4)))){
+  if(isTRUE(any(x %>% pull(mlog10pC) > -log10(opt$p_signif)))){
     new_bounds <- locus.breaker(
       x,
-      p.sig   = as.numeric(-log10(opt$p_thresh4)),
-      p.limit = as.numeric(-log10(opt$p_thresh3)),
+      p.sig   = as.numeric(-log10(opt$p_signif)),
+      p.limit = as.numeric(-log10(opt$p_limit)),
       hole.size = opt$hole,
       p.label   = "mlog10pC",
       chr.label = "Chr",
