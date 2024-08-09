@@ -38,6 +38,9 @@ opt = parse_args(opt_parser);
 ## Source function R functions
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
+redefine_region <- snakemake@config[["redefine_region"]]
+redefine_region <- toupper(redefine_region)
+
 # return input value as a string
 chr.label <- sym(opt$chr_label)
 pos.label <- sym(opt$pos_label)
@@ -132,35 +135,39 @@ saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus
 # Locus breaker BIS
 ###################
 
-cat(paste0("\nApply locus breaker and widen the locus..."))
+
 ### Repeat only on dataset that have been conditioned!!
-conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
+if (redefine_region == "YES") {
+  conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
 
-  ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
-  if(isTRUE(any(x %>% pull(mlog10pC) > -log10(opt$p_signif)))){
-    new_bounds <- locus.breaker(
-      x,
-      p.sig   = as.numeric(-log10(opt$p_signif)),
-      p.limit = as.numeric(-log10(opt$p_limit)),
-      hole.size = opt$hole,
-      p.label   = "mlog10pC",
-      chr.label = "Chr",
-      pos.label = "bp")
- 
-    # Slightly enlarge locus by 200kb!
-    new_bounds <- new_bounds %>% dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
+    ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
+    if(isTRUE(any(x %>% pull(mlog10pC) > -log10(opt$p_signif)))){
+      new_bounds <- locus.breaker(
+        x,
+        p.sig   = as.numeric(-log10(opt$p_signif)),
+        p.limit = as.numeric(-log10(opt$p_limit)),
+        hole.size = opt$hole,
+        p.label   = "mlog10pC",
+        chr.label = "Chr",
+        pos.label = "bp")
+  
+      # Slightly enlarge locus by 200kb!
+      new_bounds <- new_bounds %>% dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
 
-    # Remove SNPs not included in loci boundaries
-    x %>% filter(bp >= new_bounds$start & bp <= new_bounds$end)
-  }
-})
+      # Remove SNPs not included in loci boundaries
+      x %>% filter(bp >= new_bounds$start & bp <= new_bounds$end)
+    }
+  })
 
-cat(paste0("done."))
+  ## Remove eventually empty dataframes (caused by p_thresh4 filter)
+  conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
+  
+  ## Remove independent SNPs whose conditional data not falling in loci boundaries
+  conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
+} else {
+  cat("Skipping region re-definition using locus breaker BIS function.")
+}
 
-## Remove eventually empty dataframes (caused by p_thresh4 filter)
-conditional.dataset$results <- conditional.dataset$results %>% discard(is.null)
-# delete the independent SNPs whose conditional data not falling in loci boundaries
-#conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
 
 # Quit if no signal remain after removing SNPs not included in loci boundaries
 if (nrow(conditional.dataset$ind.snps) == 0) {
