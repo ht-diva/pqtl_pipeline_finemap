@@ -19,7 +19,13 @@ labels:
 thresholds:
   p1: 1.256913021618904e-11
   p2: 1e-06
-  p3: 1.256913021618904e-11
-  p4: 1
+  p_cojo: 1.256913021618904e-11
+  p_jumper: 1e-04
+  p_signif: 1.256913021618904e-11
+  p_limit: 1e-04
   ppp: 0.99
   hole: 250000
+
+NLRP12: yes
+build: 37
+redefine_region: NO
