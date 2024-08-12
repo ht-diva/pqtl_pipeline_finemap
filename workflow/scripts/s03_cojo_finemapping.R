@@ -41,7 +41,7 @@ opt = parse_args(opt_parser);
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
 # parameters from config file
-build <- as.character(opt$build)
+build <- as.character(opt$build) 
 redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes")
 
 #Note: adding type="character", metavar="character" does not avoid changing Yes/No to True/False
