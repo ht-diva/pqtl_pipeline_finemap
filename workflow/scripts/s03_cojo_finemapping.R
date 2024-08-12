@@ -30,7 +30,9 @@ option_list <- list(
   make_option("--p_cojo", default=1e-04, help="P-value significant threshold for COJO (--cojo-p)"),
   make_option("--p_jumper", default=1e-04, help="P-value threshold for non-significant SNP turning significant at joint model in COJO"),
   make_option("--p_signif", default=1e-06, help="P-value significant threshold for top conditional SNP post-COJO"),
-  make_option("--p_limit",  default=1e-04, help="P-value threshold for redefining locus borders post-COJO")
+  make_option("--p_limit",  default=1e-04, help="P-value threshold for redefining locus borders post-COJO"),
+  make_option("--build", default=NULL, help="Genomic build"),
+  make_option("--lb_bis", default="Yes", help="Redefine locus borders post-COJO")
 );
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -38,8 +40,9 @@ opt = parse_args(opt_parser);
 ## Source function R functions
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
-redefine_region <- snakemake@config[["redefine_region"]]
-redefine_region <- toupper(redefine_region)
+# paramters from config file
+build <- as.character(opt$build)
+redefine_region <- as.character(toupper(opt$lb_bis))
 
 # return input value as a string
 chr.label <- sym(opt$chr_label)
@@ -63,7 +66,7 @@ cat(paste("\nlocus is:", locus_name))
 
 
 # condition not to run COJO on loci in HLA region
-if(opt$chr == 6 & !(opt$end < 28477797 | opt$start > 33448354)) {
+if(build == "37" & opt$chr == 6 & !(opt$end < 28477797 | opt$start > 33448354)) {
   # Create a flag file indicating an HLA signal
   flag_file <- paste0(opt$phenotype_id, "_hla_signal.txt")
   cat("HLA signal detected for", basename(opt$phenotype_id), "at this locus:", locus_name, "\n", file = flag_file)
