@@ -1,5 +1,5 @@
 executor: slurm
-jobs: 250
+jobs: 550
 software-deployment-method:
    - conda
 #   - apptainer
@@ -34,3 +34,4 @@ set-resources:
         threads: *cores
     collect_credible_sets:
         mem_mb: 8000 + attempt * 2048
+        disk_mb: 8000 + attempt * 2048
