@@ -40,10 +40,23 @@ opt = parse_args(opt_parser);
 ## Source function R functions
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
-# paramters from config file
+# parameters from config file
 build <- as.character(opt$build)
-redefine_region <- as.character(toupper(opt$lb_bis))
+redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes")
 
+#Note: adding type="character", metavar="character" does not avoid changing Yes/No to True/False
+cat("optparser forwards:", opt$lb_bis, "\n")
+cat("toupper forwards:", redefine_region, "\n")
+
+if (redefine_region) {
+  # Code to run when run_cojo is "yes"
+  print("Running locus redefinition")
+} else {
+  # Code to run when run_cojo is "no"
+  print("Skipping locus breaker")
+}
+
+quit(status = 0)
 # return input value as a string
 chr.label <- sym(opt$chr_label)
 pos.label <- sym(opt$pos_label)
@@ -140,7 +153,7 @@ saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus
 
 
 ### Repeat only on dataset that have been conditioned!!
-if (redefine_region == "YES") {
+if (redefine_region) {
   conditional.dataset$results <- lapply(conditional.dataset$results, function(x){
 
     ### Check if there's any SNP at p-value lower than the set threshold. Otherwise stop here
