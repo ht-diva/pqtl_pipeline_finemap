@@ -11,6 +11,8 @@ rule run_cojo:
     params:
         codes=config.get("path_code"),
         geno=config.get("path_geno"),
+        g_build=config.get("build"),
+        reg_def=config.get("redefine_region"),
         ofile=ws_path("cojo/{seqid}"),
         ppp=config.get("thresholds").get("ppp"),
         p3=config.get("thresholds").get("p_cojo"),
@@ -55,6 +57,8 @@ rule run_cojo:
                 --pipeline_path   {params.codes}  \
                 --dataset_gwas {input.gwas}  \
                 --phenotype_id {params.ofile}  \
+                --build   {params.g_build}  \
+                --lb_bis  {params.reg_def}  \
                 --chr   "$chr"  \
                 --start "$beg"  \
                 --end   "$end"  \
@@ -89,6 +93,9 @@ rule collect_credible_sets:
         ofile=ws_path("cojo/collected_credible_sets.csv"),
     conda:
         "../envs/locus_breaker.yml"
+    params:
+        NLRP12=config.get("NLRP12"),
+        build=config.get("build")
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     script:

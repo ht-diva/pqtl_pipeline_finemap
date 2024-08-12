@@ -7,10 +7,10 @@ library(dplyr)
 # taking variants file as input
 sets_path <- snakemake@input
 file_path <- snakemake@output[["ofile"]]
-NLRP12 <- snakemake@config[["NLRP12"]]
-build <- snakemake@config[["Build"]]
+nlrp12 <- snakemake@params[["NLRP12"]]
+build <- snakemake@params[["build"]]
 
-NLRP12 <- toupper(NLRP12)
+nlrp12 <- toupper(nlrp12)
 build <- as.character(build)
 
 #--------------#
@@ -46,22 +46,22 @@ cojo_meta <- tibble(
     )
   )
 ) %>%
-arrange(Chr, bp)
+  arrange(Chr, bp)
 
 # take the proper boundaries respect to the build
-if (NLRP12 == "YES" & build == "37") {
+if (nlrp12 == "YES" & build == "37") {
   #NLRP12 gene maps to 54,296,995-54,327,657 in GRCh37 coordinates.
   pos.start <- 54296995
   pos.end   <- 54327657
-} else if (NLRP12 == "YES" & build == "38") {
+} else if (nlrp12 == "YES" & build == "38") {
   pos.start <- 00000000
   pos.end   <- 00000000
 }
 
 # check if the user asks to define an indicator function
-if (NLRP12 == "YES" & build == "37") {
+if (nlrp12 == "YES") {
   cojo_meta <- cojo_meta %>%
-    mutate(nlrp12 = ifelse(Chr == 19 & !(bp < pos.start | bp > pos.end), "Yes", "No"))
+    mutate(NLRP12 = ifelse(Chr == 19 & !(bp < pos.start | bp > pos.end), "Yes", "No"))
   cat("SNPs in the NLRP12 are indicated from the list of target SNPs.")
 } else {
   cat("No filter was applied on the list of target SNPs.")
