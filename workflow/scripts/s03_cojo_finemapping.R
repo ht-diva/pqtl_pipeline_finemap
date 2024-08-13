@@ -41,22 +41,10 @@ opt = parse_args(opt_parser);
 source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"))
 
 # parameters from config file
-build <- as.character(opt$build) 
-redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes")
+build <- as.character(opt$build)
+redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")
+#Note: adding type="character", metavar="character" does not avoid changing case-sensitive Yes/No to True/False
 
-#Note: adding type="character", metavar="character" does not avoid changing Yes/No to True/False
-cat("optparser forwards:", opt$lb_bis, "\n")
-cat("toupper forwards:", redefine_region, "\n")
-
-if (redefine_region) {
-  # Code to run when run_cojo is "yes"
-  print("Running locus redefinition")
-} else {
-  # Code to run when run_cojo is "no"
-  print("Skipping locus breaker")
-}
-
-quit(status = 0)
 # return input value as a string
 chr.label <- sym(opt$chr_label)
 pos.label <- sym(opt$pos_label)
