@@ -32,7 +32,7 @@ rule run_cojo:
     log:
         ws_path("logs/cojo/{seqid}.log"),
     resources:
-        runtime=lambda wc, attempt: attempt * 60,
+        runtime=lambda wc, attempt: 120 + attempt * 60,
         mem_mb=lambda wc, attempt: 8000 + attempt * 2048,
     shell:
         """
