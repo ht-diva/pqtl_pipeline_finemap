@@ -226,6 +226,15 @@ cat("\nSaving independent signals...")
 ## Save independent association signals
 fwrite(conditional.dataset$ind.snps, paste0(opt$phenotype_id, "_locus_chr", locus_name,"_ind_snps.tsv"), sep="\t", quote=F, na=NA)
 
+## Extract independent snps from conditional model to save p-value
+cojo_conditional <- map_dfr(
+  1:nrow(conditional.dataset$ind.snps), 
+  function(i) conditional.dataset$results[[i]] %>% right_join(conditional.dataset$ind.snps[i, "SNP"], join_by("SNP"))
+  )
+
+# Save cojo results
+fwrite(cojo_conditional, paste0(opt$phenotype_id, "_locus_chr", locus_name,"_conditional_snps.tsv"), sep="\t", quote=F, na=NA)
+
 cat("done.\nSave other lABF results...")
 
 # create folder to save outputs for each seqid separately
