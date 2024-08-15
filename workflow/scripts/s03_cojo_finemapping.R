@@ -156,7 +156,9 @@ if (redefine_region) {
         pos.label = "bp")
   
       # Slightly enlarge locus by 200kb!
-      new_bounds <- new_bounds %>% dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
+      new_bounds <- new_bounds %>%
+         top_n(mlog10pC, n=1) %>% # take the most significant variant if there are multiple loci
+         dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
 
       # Remove SNPs not included in loci boundaries
       x %>% filter(bp >= new_bounds$start & bp <= new_bounds$end)
