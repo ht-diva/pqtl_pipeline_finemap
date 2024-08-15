@@ -21,7 +21,7 @@ credible_set_list <- lapply(
     file_name = basename(path)
     seqid = stringr::str_remove(file_name, ".sentinel") # extract the protein sequence id and remove file format
     list.files(
-      pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_ind_snps.tsv"), # pattern of output file name containing independents snps
+      pattern = paste0(seqid, "_locus_chr(\\d+)_(\\d+)_(\\d+)_conditional_snps.tsv"), # pattern of output file name containing independents snps
       path = base_path, # the path where the independents snps file live
       recursive = TRUE, # to show the files in subdirectories or subfolders
       full.names = TRUE # to show full path
@@ -40,7 +40,7 @@ cojo_meta <- tibble(
         mutate(
             study_id = stringr::str_split_fixed(basename(x), "_", 2)[,1],
             locus = stringr::str_split_fixed(basename(x), "_locus_", 2)[,2],
-            locus = stringr::str_remove_all(locus, "_ind_snps.tsv")
+            locus = stringr::str_remove_all(locus, "_conditional_snps.tsv")
             )
     }
     )
