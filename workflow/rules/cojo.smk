@@ -13,6 +13,7 @@ rule run_cojo:
         geno=config.get("path_geno"),
         g_build=config.get("build"),
         reg_def=config.get("redefine_region"),
+        NLRP12=config.get("NLRP12"),
         ofile=ws_path("cojo/{seqid}"),
         ppp=config.get("thresholds").get("ppp"),
         p3=config.get("thresholds").get("p_cojo"),
@@ -59,6 +60,7 @@ rule run_cojo:
                 --phenotype_id {params.ofile}  \
                 --build   {params.g_build}  \
                 --lb_bis  {params.reg_def}  \
+                --nlrp12  {params.NLRP12}   \
                 --chr   "$chr"  \
                 --start "$beg"  \
                 --end   "$end"  \

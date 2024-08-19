@@ -32,7 +32,8 @@ option_list <- list(
   make_option("--p_signif", default=1e-06, help="P-value significant threshold for top conditional SNP post-COJO"),
   make_option("--p_limit",  default=1e-04, help="P-value threshold for redefining locus borders post-COJO"),
   make_option("--build", default=NULL, help="Genomic build"),
-  make_option("--lb_bis", default="Yes", help="Redefine locus borders post-COJO")
+  make_option("--lb_bis", default="Yes", help="Redefine locus borders post-COJO"),
+  make_option("--nlrp12", default=NULL, help="Discard a locus if lead variant overlaps NLRP12 region")
 );
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
@@ -44,6 +45,7 @@ source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"
 build <- as.character(opt$build)
 redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")
 #Note: adding type="character", metavar="character" does not avoid changing case-sensitive Yes/No to True/False
+nlrp12 <- opt$nlrp12 %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")
 
 # return input value as a string
 chr.label <- sym(opt$chr_label)
@@ -66,16 +68,54 @@ locus_name <- paste0(opt$chr, "_", opt$start, "_", opt$end)
 cat(paste("\nlocus is:", locus_name))
 
 
-# condition not to run COJO on loci in HLA region
-if(build == "37" & opt$chr == 6 & !(opt$end < 28477797 | opt$start > 33448354)) {
-  # Create a flag file indicating an HLA signal
-  flag_file <- paste0(opt$phenotype_id, "_hla_signal.txt")
-  cat("HLA signal detected for", basename(opt$phenotype_id), "at this locus:", locus_name, "\n", file = flag_file)
-  # stop here and move to the next locus
-  #stop("The provided locus overlaps the HLA region! Stop the COJO rule here.")
-  quit(status = 0)  # Exit the script silently
+#-------------------------------------#
+#        Filter MHC and NLRP12        #
+#-------------------------------------#
+
+# define region depending on the genomic build
+if (build == "37") {
+  # NLRP12 gene maps to 54,296,995-54,327,657 in GRCh37, but we use suggested positions by Adam () enlarged by +/-20kb.
+  nlrp12.start <- 54300000
+  nlrp12.end   <- 54360000
+  hla.start <- 28477797
+  hla.end   <- 33448354
+  cat("\nTo filter MHC and NLRP12 regions, genomic positions are set in build", build, "\n")
+} else if (build == "38") {
+  # Using liftover.broadinstitute.org resulted in: chr19:53816370-53836078, then expanded it for 20kb
+  nlrp12.start <- 53796000
+  nlrp12.end   <- 53856000
+  # MHC region maps to chr6:28,510,120-33,480,577 in GRCh38 coordinates.
+  hla.start <- 28510120
+  hla.end   <- 33480577
+  cat("\nTo filter MHC and NLRP12 regions, genomic positions are set in build", build, "\n")
 }
 
+# condition not to run COJO on loci in HLA region
+if (opt$chr == 6 & !(opt$end < hla.start | opt$start > hla.end)) {
+  flag_file <- paste0(opt$phenotype_id, "_hla_signal.txt") # Create a flag file indicating an HLA signal
+  cat("HLA signal detected for", basename(opt$phenotype_id), "at this locus:", locus_name, "\n", file = flag_file)
+  quit(status = 0)  # Exit the script silently and move to the next locus
+} else {
+  cat("\nThe locus", locus_name, "does not overlap with the HLA region.\n")
+}
+
+# read locus breaker output to extract target SNP
+target_pos <- opt$phenotype_id %>%
+  stringi::stri_replace_last_fixed("cojo", "break") %>%
+  stringr::str_c("_loci.csv") %>% 
+  data.table::fread() %>%
+  filter(chr == opt$chr, start == opt$start, end == opt$end) %>%
+  select(!!pos.label) %>%
+  as.numeric()
+
+# Skip running COJO if locus overlaps with NLRP12 region
+if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.end)) {
+  note <- paste0(opt$phenotype_id, "_nlrp12_signal.txt")
+  cat("Lead SNP at", locus_name," locus overlaps NLRP12 region for", basename(opt$phenotype_id), "\n", file = note)
+  quit(status = 0)
+} else {
+  cat("NLRP12 filter is off.\n")
+}
 
 # Slightly enlarge locus by 200kb!
 opt$start  <- opt$start - 100000
