@@ -111,7 +111,7 @@ target_pos <- opt$phenotype_id %>%
 # Skip running COJO if locus overlaps with NLRP12 region
 if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.end)) {
   note <- paste0(opt$phenotype_id, "_nlrp12_signal.txt")
-  cat("Lead SNP at", locus_name," locus overlaps NLRP12 region for", basename(opt$phenotype_id), "\n", file = note)
+  cat("Lead SNP at", locus_name,"locus overlaps NLRP12 region for", basename(opt$phenotype_id), "\n", file = note)
   quit(status = 0)
 } else {
   cat("NLRP12 filter is off.\n")
@@ -197,7 +197,7 @@ if (redefine_region) {
   
       # Slightly enlarge locus by 200kb!
       new_bounds <- new_bounds %>%
-         top_n(mlog10pC, n=1) %>% # take the most significant variant if there are multiple loci
+         top_n(mlog10pC, n=1) %>%  # take the most significant variant if there are multiple loci
          dplyr::mutate(start=as.numeric(start)-100000, end=as.numeric(end)+100000)
 
       # Remove SNPs not included in loci boundaries
