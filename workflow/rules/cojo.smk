@@ -95,9 +95,6 @@ rule collect_credible_sets:
         ofile=ws_path("cojo/collected_credible_sets.csv"),
     conda:
         "../envs/locus_breaker.yml"
-    params:
-        NLRP12=config.get("NLRP12"),
-        build=config.get("build")
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     script:
