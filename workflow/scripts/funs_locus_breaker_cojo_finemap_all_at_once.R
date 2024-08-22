@@ -178,23 +178,23 @@ cojo.ht=function(D=dataset_gwas
     write(D %>% filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% pull(SNP), ncol=1,file=paste0(random.number,"_locus_only.snp.list"))
 
 # Compute allele frequency with Plink -- we removed "--maf ", maf.thresh, from original script
-    system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
+    #system(paste0(plink.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,".snp.list --make-bed --geno-counts --threads ", plink.threads, " --memory ", plink.mem, " 'require'  --out ", random.number))
 
-    freqs <- fread(paste0(random.number,".gcount"))
-    freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
+    #freqs <- fread(paste0(random.number,".gcount"))
+    #freqs$FreqREF=(freqs$HOM_REF_CT*2+freqs$HET_REF_ALT_CTS)/(2*(rowSums(freqs[,c("HOM_REF_CT", "HET_REF_ALT_CTS", "TWO_ALT_GENO_CTS")])))  #### Why doing all this when plink can directly calculate it with --frq?
 
 # Assign allele frequency from the LD reference
     D <- D %>%
       filter(!!chr.label==locus_chr, !!pos.label >= locus_start, !!pos.label <= locus_end) %>% #bounding the GWAS to variants only falling at the locus solves the problem of phenotipc variance = 0 by GCTA-cojo
       dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
-      left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
-      mutate(FREQ=ifelse(REF==!!ea.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
-      dplyr::select("SNP",!!ea.label,!!oa.label,FREQ,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map", "type", "sdY")))
+      #left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
+      #mutate(FREQ=ifelse(REF==!!oa.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
+      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map", "type", "sdY")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
 # step1 determine independent snps -- we removed "--maf ", maf.thresh, from original script
-  system(paste0(gcta.bin," --bfile ", random.number, " --cojo-p ", p.cojo, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
+  system(paste0(gcta.bin," --bfile ", bfile, locus_chr, " --cojo-p ", p.cojo, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
@@ -223,7 +223,7 @@ cojo.ht=function(D=dataset_gwas
         print(ind.snp$SNP[-i])
 
         #Removing "--maf ", maf.thresh, from original script
-        system(paste0(gcta.bin," --bfile ",random.number, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+        system(paste0(gcta.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
         #### STOP ANALYSIS FOR THAT TOP SNP IN CASE OF COLLINEARITY
         if(!file.exists(paste0(random.number,"_step2.cma.cojo"))){
@@ -257,7 +257,7 @@ cojo.ht=function(D=dataset_gwas
 
       write(ind.snp$SNP,ncol=1,file=paste0(random.number,"_independent.snp"))
       #Removing "--maf ", maf.thresh, from original script
-      system(paste0(gcta.bin," --bfile ",random.number," --cojo-p ",p.cojo, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      system(paste0(gcta.bin," --bfile ",bfile, locus_chr," --cojo-p ",p.cojo, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         dplyr::mutate(
