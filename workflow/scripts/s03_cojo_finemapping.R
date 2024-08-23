@@ -117,9 +117,15 @@ if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.en
   cat("NLRP12 filter is off.\n")
 }
 
-# Slightly enlarge locus by 200kb!
-opt$start  <- opt$start - 100000
-opt$end    <- opt$end + 100000
+# in case the locus had only one SNP, slightly enlarge locus by 200kb!
+if (opt$end - opt$start == 0){
+  opt$start  <- opt$start - 100000
+  opt$end    <- opt$end + 100000
+  cat(locus_name, "was a single-SNP locus. To run COJO, we expanded it by +/- 100kb.\n")
+} else{
+  cat(locus_name, "wasn't a single-SNP locus, so that we did not expand it.\n")
+}
+
 
 # to avoid killing plink job, reduce resources
 opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
@@ -128,7 +134,7 @@ opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
 # reading GWAS and mapping files
 dataset_gwas <- fread(opt$dataset_gwas, data.table=F)
 
-cat(paste0("\nAdding original alleles from mapping to GWAS summary..."))
+cat(paste0("\nAdding variance of phenotype to GWAS summary..."))
 
 # merge map file with GWAS results
 dataset_gwas <- dataset_gwas %>%
