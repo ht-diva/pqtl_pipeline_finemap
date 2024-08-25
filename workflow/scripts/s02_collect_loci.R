@@ -72,6 +72,24 @@ cat(
   "loci belonging to NLRP12 regions were removed.\n"
   )
 
+
+#-------------------------------------#
+# compute width of loci and categorize it
+loci_final <- ex_nlrp12 %>%
+  mutate(
+    loci_width = end - start,
+    loci_cat = case_when(
+      loci_width == 0 ~ "Zero",
+      loci_width > 0 & loci_width <= 10000 ~ "1bp - 10Kbp",
+      loci_width > 10000 & loci_width <= 50000 ~ "10-50Kbp",
+      loci_width > 50000 & loci_width <= 100000 ~ "50-100Kbp",
+      loci_width > 100000 & loci_width <= 200000 ~ "100-200Kbp",
+      loci_width > 200000 & loci_width <= 500000 ~ "200-500Kbp",
+      loci_width > 500000 & loci_width <= 1000000 ~ "500Kbp - 1Mbp",
+      TRUE ~ "1-10.3Mbp"
+      )
+    )
+
 #--------------#
 # save the joint results
-write.csv(ex_nlrp12, file = file_path, quote = F, row.names = F)
+write.csv(loci_final, file = file_path, quote = F, row.names = F)
