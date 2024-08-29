@@ -43,9 +43,11 @@ source(paste0(opt$pipeline_path, "funs_locus_breaker_cojo_finemap_all_at_once.R"
 
 # parameters from config file
 build <- as.character(opt$build)
-redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")
-#Note: adding type="character", metavar="character" does not avoid changing case-sensitive Yes/No to True/False
+redefine_region <- opt$lb_bis %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")  # Note: adding type="character", metavar="character" does not avoid changing case-sensitive Yes/No to True/False
 nlrp12 <- opt$nlrp12 %in% c(TRUE, "yes", "true", "TRUE", "Yes", "1")
+
+cat("\nRedefine region is ON?", redefine_region)
+cat("\nNLRP12 is ON?", nlrp12)
 
 # return input value as a string
 chr.label <- sym(opt$chr_label)
