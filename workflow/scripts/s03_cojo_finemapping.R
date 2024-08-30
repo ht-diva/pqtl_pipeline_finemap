@@ -113,19 +113,20 @@ target_pos <- opt$phenotype_id %>%
 # Skip running COJO if locus overlaps with NLRP12 region
 if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.end)) {
   note <- paste0(opt$phenotype_id, "_nlrp12_signal.txt")
-  cat("Lead SNP at", locus_name,"locus overlaps NLRP12 region for", basename(opt$phenotype_id), "\n", file = note)
+  cat("\nLead variant", paste0(opt$chr, ":", target_pos, "at", locus_name), "locus overlaps NLRP12 region for", basename(opt$phenotype_id), "\n", file = note)
   quit(status = 0)
 } else {
-  cat("NLRP12 filter is off.\n")
+  cat("\nLead variant", paste0(opt$chr, ":", target_pos, "at", locus_name), "locus DOES NOT overlap NLRP12 region.\n")
 }
 
 # in case the locus had only one SNP, slightly enlarge locus by 200kb!
 if (opt$end - opt$start == 0){
-  opt$start  <- opt$start - 100000
-  opt$end    <- opt$end + 100000
-  cat(locus_name, "was a single-SNP locus. To run COJO, we expanded it by +/- 100kb.\n")
+  tail = 0 
+  opt$start <- opt$start - tail
+  opt$end <- opt$end + tail
+  cat(locus_name, "is a single-SNP locus. To run COJO, we expanded it by +/-", tail, "kb.\n")
 } else{
-  cat(locus_name, "wasn't a single-SNP locus, so that we did not expand it.\n")
+  cat(locus_name, "isn't a single-SNP locus, so that we DID NOT expand it.\n")
 }
 
 
@@ -285,7 +286,7 @@ cojo_conditional <- map_dfr(
 # Save cojo results
 fwrite(cojo_conditional, paste0(opt$phenotype_id, "_locus_chr", locus_name,"_conditional_snps.tsv"), sep="\t", quote=F, na=NA)
 
-cat("done.\nSave other lABF results...")
+cat("done.\nSave other lABF results...\n")
 
 # create folder to save outputs for each seqid separately
 dir.create(paste0(opt$outdir, "/finemaping/"), recursive = TRUE)
@@ -308,5 +309,6 @@ lapply(finemap.res, function(x){
   fwrite(tmp, paste0(sp_file_name, "_coloc_info_table.tsv"), sep="\t", quote=F, col.names = F, na=NA)
 })
 
-cat("done!\n\n")
-cat("Run-COJO rule is finished!\n")
+
+cat("Run-COJO rule is finished!\n\n")
+cat("===========================================================================\n")
