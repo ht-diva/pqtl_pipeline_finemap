@@ -19,7 +19,7 @@ rule break_locus:
     log:
         ws_path("logs/break/{seqid}.log"),
     resources:
-        runtime=lambda wc, attempt: attempt * 30,
+        runtime=lambda wc, attempt: attempt * 120,
     shell:
         """
         # Rscript=`ls /conda-envs/*/bin/Rscript`;
@@ -48,6 +48,6 @@ rule collect_loci:
         NLRP12=config.get("NLRP12"),
         build=config.get("build")
     resources:
-        runtime=lambda wc, attempt: attempt * 30,
+        runtime=lambda wc, attempt: attempt * 120,
     script:
         "../scripts/s02_collect_loci.R"
