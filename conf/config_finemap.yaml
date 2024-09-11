@@ -26,6 +26,6 @@ thresholds:
   ppp: 0.99
   hole: 250000
 
-NLRP12: Yes
+NLRP12: 1
 build: 37
 redefine_region: 0
