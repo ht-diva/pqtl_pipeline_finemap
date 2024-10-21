@@ -1,5 +1,5 @@
 executor: slurm
-jobs: 550
+jobs: 450
 software-deployment-method:
    - conda
 #   - apptainer

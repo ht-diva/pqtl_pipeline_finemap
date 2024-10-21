@@ -19,3 +19,8 @@ output/
 results/
 .cache/
 res_cojo/
+workflow/scripts/s05_collect_credible_sets_lazy.R
+workflow/scripts/collector.R
+workflow/scripts/run_collector.sh
+conf/loci_list.txt
+conf/path_30loci.txt

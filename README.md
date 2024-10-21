@@ -26,12 +26,6 @@ ls -1 /exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_n
 # mapping files
 `/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz`
 
-
-# Next-Flow pipeline for evaluation of the results
-`/ssu/bsssu/dariush_coloc/testing_nf_pipeline`
-
-- Permissions are granted to allow modifying the R scripts.
-
 - Verifying the results using GLM model (Thu, 03:12, 18 to 20-Jun-23).
 
 - Lunching the locus breaker and COJO on the latest meta-analysis results (Mon, 23:55, 24-Jun-24)

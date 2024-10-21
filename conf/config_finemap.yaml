@@ -1,8 +1,8 @@
 path_code: "workflow/scripts/"
 path_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/bed/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 
-sumstats_path: conf/path_meta_five.txt
-workspace_path: "results/meta_std"
+sumstats_path: conf/path_meta_1snp.txt
+workspace_path: "results/meta_filtered"
 
 labels:
   chr_label: "'##CHR'"
@@ -26,6 +26,6 @@ thresholds:
   ppp: 0.99
   hole: 250000
 
-NLRP12: Yes
+NLRP12: 1
 build: 37
 redefine_region: 0
