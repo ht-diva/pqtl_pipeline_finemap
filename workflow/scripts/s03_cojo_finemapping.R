@@ -120,14 +120,17 @@ if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.en
 }
 
 # in case the locus had only one SNP, slightly enlarge locus by 200kb!
-if (opt$end - opt$start == 0){
-  tail = 0 
-  opt$start <- opt$start - tail
-  opt$end <- opt$end + tail
-  cat(locus_name, "is a single-SNP locus. To run COJO, we expanded it by +/-", tail, "kb.\n")
-} else{
-  cat(locus_name, "isn't a single-SNP locus, so that we DID NOT expand it.\n")
-}
+#if (opt$end - opt$start == 0){
+#  tail = 0 
+#  opt$start <- opt$start - tail
+#  opt$end <- opt$end + tail
+#  cat(locus_name, "is a single-SNP locus. To run COJO, we expanded it by +/-", tail, "kb.\n")
+#} else{
+#  cat(locus_name, "isn't a single-SNP locus, so that we DID NOT expand it.\n")
+#}
+# Slightly enlarge locus by 200kb!
+opt$start  <- opt$start - 100000
+opt$end    <- opt$end + 100000
 
 
 # to avoid killing plink job, reduce resources

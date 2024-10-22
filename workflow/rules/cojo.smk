@@ -34,7 +34,6 @@ rule run_cojo:
         ws_path("logs/cojo/{seqid}.log"),
     resources:
         runtime=lambda wc, attempt: 120 + attempt * 60,
-        mem_mb=lambda wc, attempt: 8000 + attempt * 2048,
     shell:
         """
         # Rscript=`ls /conda-envs/*/bin/Rscript`;
