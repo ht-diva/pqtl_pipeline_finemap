@@ -1,7 +1,9 @@
 
-# required inputs to extract conditional data
+# Required inputs to extract conditional data
 # 1. identifier of protein sequence
 # 2. identifier of target SNP
+
+# For more information, please refer to the issue #26 of project page on github.
 
 seq <- "seq.12603.87" #"seq.3054.3"
 target <- "3:56849749:C:T" #"16:72114002:C:T" #"19:54759361:C:T"
