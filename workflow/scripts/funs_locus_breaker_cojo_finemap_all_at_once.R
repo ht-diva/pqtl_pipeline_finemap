@@ -273,7 +273,7 @@ cojo.ht=function(D=dataset_gwas
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
         step2.res,
-        ind.snp %>% dplyr::select(-bJ,-bJ_se,-pJ,-LD_r)
+        ind.snp %>% dplyr::select(-bJ,-bJ_se,-pJ,-LD_r,-pJ_org,-mlog10pJ)
       )
 
       step2.res$cojo_snp <- ind.snp$SNP
