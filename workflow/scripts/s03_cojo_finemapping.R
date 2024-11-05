@@ -145,7 +145,7 @@ cat(paste0("\nAdding variance of phenotype to GWAS summary..."))
 # merge map file with GWAS results
 dataset_gwas <- dataset_gwas %>%
   dplyr::mutate(
-    snp_map = !!snpid.label, # to report cojo results
+    #snp_map = !!snpid.label, # to report cojo results
     sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
     type = paste0('quant') # necessary column for fine-mapping
   ) %>%

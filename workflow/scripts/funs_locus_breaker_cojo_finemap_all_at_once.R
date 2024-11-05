@@ -189,7 +189,7 @@ cojo.ht=function(D=dataset_gwas
       dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
       #left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       #mutate(FREQ=ifelse(REF==!!oa.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
-      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("snp_map", "type", "sdY")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("type", "sdY")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
@@ -210,7 +210,7 @@ cojo.ht=function(D=dataset_gwas
       ) %>%
       dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
       filter(mlog10p > - log10(p.jumper)) %>%   # avoid including any non-significant independent variant to conditional model  
-      left_join(D %>% dplyr::select(SNP,any_of(c("snp_map", "type", "sdY", opt$p_label))), by="SNP")
+      left_join(D %>% dplyr::select(SNP,any_of(c("type", "sdY", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -241,13 +241,13 @@ cojo.ht=function(D=dataset_gwas
               mlog10pC = safe_pnorm(bC, bC_se)      # compute joint MLOG10P
             ) %>%
             dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pC, mlog10pC) %>%  # tidying columns order
-            left_join(D %>% dplyr::select(SNP, any_of(c("snp_map", "type", "sdY", opt$p_label))), by="SNP") %>%
+            left_join(D %>% dplyr::select(SNP, any_of(c("type", "sdY", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
           dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp[i,])
           # Add conditioned gwas to the results list
           dataset.list$results[[i]]=step2.res
-          names(dataset.list$results)[i]=ind.snp$snp_map[i]
+          names(dataset.list$results)[i]=ind.snp$SNP[i]
           system(paste0("rm ",random.number,"_step2.cma.cojo"))
         }
       }
@@ -268,7 +268,7 @@ cojo.ht=function(D=dataset_gwas
           mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
           ) %>%
         dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p) %>%  # tidying columns order
-        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("snp_map", "type", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("type", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
@@ -284,7 +284,7 @@ cojo.ht=function(D=dataset_gwas
 
       dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp)
       dataset.list$results[[1]]=step2.res
-      names(dataset.list$results)[1]=ind.snp$snp_map[1]
+      names(dataset.list$results)[1]=ind.snp$SNP[1]
     }
     # Remove results df possibly empty (in case of collinearity issue)
     dataset.list$results <- dataset.list$results %>% discard(is.null)
@@ -309,8 +309,8 @@ finemap.cojo <- function(D, cs_threshold=0.99){
 # Format input
     D <- D %>%
       dplyr::mutate(varbeta=bC_se^2) %>%
-      dplyr::select("snp_map","Chr","bp","bC","varbeta","n","pC","freq",any_of(c("sdY","s","type"))) %>%
-      rename("snp"="snp_map","chr"="Chr","position"="bp","beta"="bC","N"="n","pvalues"="pC","MAF"="freq")
+      dplyr::select("SNP","Chr","bp","bC","varbeta","n","pC","freq",any_of(c("sdY","s","type"))) %>%
+      rename("snp"="SNP","chr"="Chr","position"="bp","beta"="bC","N"="n","pvalues"="pC","MAF"="freq")
 
   D <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
   D$type <- unique(D$type)
@@ -355,7 +355,7 @@ plot.cojo.ht=function(cojo.ht.obj){
     for(i in 1:nrow(cojo.ht.obj$ind.snps)){
 
       tmp=cojo.ht.obj$results[[i]]
-      tmp$signal=cojo.ht.obj$ind.snps$snp_map[i]
+      tmp$signal=cojo.ht.obj$ind.snps$SNP[i]
       whole.dataset=rbind(whole.dataset,tmp)
       
       # set break points for y-axis
@@ -369,7 +369,7 @@ plot.cojo.ht=function(cojo.ht.obj){
       geom_point(alpha=0.6,size=3)+
       scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=snp_map),size=6,shape=23) +
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=SNP),size=6,shape=23) +
       guides(fill=guide_legend(title="SNP"))
     
     p2 <- ggplot(whole.dataset,aes(x=bp,y=mlog10pC,color=signal)) +
@@ -391,7 +391,7 @@ plot.cojo.ht=function(cojo.ht.obj){
       geom_point(alpha=0.6,size=3)+
       scale_y_continuous(breaks = y_dot, limits = c(0, max_p)) +
       theme_classic() + my_theme() +
-      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=snp_map),size=6,shape=23)
+      geom_point(data=cojo.ht.obj$ind.snps,aes(x=bp,y=mlog10p,fill=SNP),size=6,shape=23)
   }
   return(p3)
 }
