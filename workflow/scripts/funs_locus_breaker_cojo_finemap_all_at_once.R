@@ -208,7 +208,7 @@ cojo.ht=function(D=dataset_gwas
         mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
         mlog10pJ = safe_pnorm(bJ, bJ_se)      # compute joint MLOG10P
       ) %>%
-      dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pJ, mlog10pJ) %>%  # tidying columns order
+      dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p, n:pJ, pJ_org, mlog10pJ) %>%  # tidying columns order
       filter(mlog10p > - log10(p.jumper)) %>%   # avoid including any non-significant independent variant to conditional model  
       left_join(D %>% dplyr::select(SNP,any_of(c("type", "sdY", opt$p_label))), by="SNP")
 
@@ -240,7 +240,7 @@ cojo.ht=function(D=dataset_gwas
               mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
               mlog10pC = safe_pnorm(bC, bC_se)      # compute joint MLOG10P
             ) %>%
-            dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p, n:pC, mlog10pC) %>%  # tidying columns order
+            dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p, n:pC, pC_org, mlog10pC) %>%  # tidying columns order
             left_join(D %>% dplyr::select(SNP, any_of(c("type", "sdY", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
@@ -267,7 +267,7 @@ cojo.ht=function(D=dataset_gwas
           p  = safe_pnorm(b, se, p = TRUE),     # compute unconditional p-value
           mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
           ) %>%
-        dplyr::relocate(Chr:freq, freq_geno, b:p, mlog10p) %>%  # tidying columns order
+        dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p) %>%  # tidying columns order
         left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("type", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
@@ -280,6 +280,7 @@ cojo.ht=function(D=dataset_gwas
       step2.res$bC <- step2.res$b
       step2.res$bC_se <- step2.res$se
       step2.res$pC <- step2.res$p
+      step2.res$pC_org <- step2.res$p_org
       step2.res$mlog10pC <- step2.res$mlog10p
 
       dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp)
