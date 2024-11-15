@@ -132,22 +132,30 @@ if (nlrp12 & opt$chr == 19 & (target_pos > nlrp12.start & target_pos < nlrp12.en
 opt$start  <- opt$start - 100000
 opt$end    <- opt$end + 100000
 
+# locus name
+locus_extended <- paste0(opt$chr, "_", opt$start, "_", opt$end)
+cat("\nExtended locus is:", locus_name)
 
 # to avoid killing plink job, reduce resources
 opt$plink2_mem <- as.numeric(opt$plink2_mem) - 512
 
+#-------------------------------------#
+#             Import GWAS             #
+#-------------------------------------#
 
-# reading GWAS and mapping files
+# reading GWAS
 dataset_gwas <- fread(opt$dataset_gwas, data.table=F)
 
 cat(paste0("\nAdding variance of phenotype to GWAS summary..."))
 
-# merge map file with GWAS results
+# add desired columns to GWAS
 dataset_gwas <- dataset_gwas %>%
   dplyr::mutate(
     #snp_map = !!snpid.label, # to report cojo results
     sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
-    type = paste0('quant') # necessary column for fine-mapping
+    type = paste0('quant'), # necessary column for fine-mapping
+    locus = paste0(locus_name),
+    locus_extended = paste0(locus_extended)
   ) %>%
   rename(SNP = !!snpid.label)
 
