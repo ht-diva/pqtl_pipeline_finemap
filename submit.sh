@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name locojo
-#SBATCH --output %j_meta_filtered_nlrp.log
+#SBATCH --output %j_meta_hole_1M.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
