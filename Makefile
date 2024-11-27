@@ -25,7 +25,7 @@ dev-dependencies: dependencies
 
 dry-run:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \
-	snakemake --sdm conda --dry-run --profile slurm --snakefile workflow/Snakefile --until collect_loci
+	snakemake --sdm conda --dry-run --profile slurm --snakefile workflow/Snakefile #--until collect_loci
 
 pre-commit:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \
@@ -34,7 +34,7 @@ pre-commit:
 
 run:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \
-	snakemake --profile slurm --snakefile workflow/Snakefile --until collect_loci
+	snakemake --profile slurm --snakefile workflow/Snakefile #--until collect_loci
 
 rerun:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \
