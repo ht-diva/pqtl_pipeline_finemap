@@ -16,6 +16,7 @@ configfile: "conf/config_finemap.yaml"
 include: "rules/common.smk"
 include: "rules/locus_breaker.smk"
 include: "rules/cojo.smk"
+include: "rules/coloc.smk"
 
 
 rule all:
@@ -24,3 +25,4 @@ rule all:
         expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
         ws_path("break/collected_loci_excluding_mhc.csv"),
         ws_path("cojo/collected_credible_sets.csv"),
+        ws_path("coloc/master_coloc.txt"),
