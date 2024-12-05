@@ -25,4 +25,5 @@ rule all:
         expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
         ws_path("break/collected_loci_excluding_mhc.csv"),
         ws_path("cojo/collected_credible_sets.csv"),
-        ws_path("coloc/master_coloc.txt"),
+        expand(ws_path("coloc/{seqid}_master_file.sentinel"), seqid=analytes.seqid),
+        expand(ws_path("coloc/chr{chr_cs}.sentinel"), chr_cs = range(19, 20))
