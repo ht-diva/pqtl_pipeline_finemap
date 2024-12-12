@@ -230,6 +230,10 @@ if (redefine_region) {
   
   ## Remove independent SNPs whose conditional data not falling in loci boundaries
   conditional.dataset$ind.snps <- conditional.dataset$ind.snps %>% filter(SNP %in% names(conditional.dataset$results))
+
+  # Save updated conditional data
+  saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
+
 } else {
   cat("Skipping region re-definition using locus breaker BIS function.")
 }
@@ -242,8 +246,6 @@ if (nrow(conditional.dataset$ind.snps) == 0) {
   quit(status = 0)  # Exit the script silently
 }
 
-# Save updated conditional data
-saveRDS(conditional.dataset, file=paste0(opt$outdir, "/conditional_data_", locus_name, "_up.rds"))
 
 ################
 # Regional Plots
