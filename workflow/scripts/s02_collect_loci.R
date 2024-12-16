@@ -79,14 +79,14 @@ loci_final <- ex_nlrp12 %>%
   mutate(
     loci_width = end - start,
     loci_cat = case_when(
-      loci_width == 0 ~ "Zero",
-      loci_width > 0 & loci_width <= 10000 ~ "1bp - 10Kbp",
-      loci_width > 10000 & loci_width <= 50000 ~ "10-50Kbp",
-      loci_width > 50000 & loci_width <= 100000 ~ "50-100Kbp",
-      loci_width > 100000 & loci_width <= 200000 ~ "100-200Kbp",
-      loci_width > 200000 & loci_width <= 500000 ~ "200-500Kbp",
-      loci_width > 500000 & loci_width <= 1000000 ~ "500Kbp - 1Mbp",
-      TRUE ~ "1-10.3Mbp"
+      loci_width == 0 ~ "1-SNP",
+      loci_width > 0 & loci_width <= 100000 ~ "1bp - 100Kbp",
+      loci_width > 100000 & loci_width <= 250000 ~ "100-250Kbp",
+      loci_width > 250000 & loci_width <= 500000 ~ "250-500Kbp",
+      loci_width > 500000 & loci_width <= 1000000 ~ "500Kbp-1Mbp",
+      loci_width > 1000000 & loci_width <= 2000000 ~ "1-2Mbp",
+      loci_width > 2000000 & loci_width <= 5000000 ~ "2-5Mbp",
+      TRUE ~ ">5Mbp"
       )
     )
 
