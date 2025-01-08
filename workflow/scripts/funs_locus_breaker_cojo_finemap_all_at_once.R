@@ -302,38 +302,49 @@ cojo.ht=function(D=dataset_gwas
 
 
 
+#### finemap.abf from coloc but modified to not include a prior/null in finemapping
+finemap.abf_NO_PRIOR <- function(dataset) {
+  
+  coloc::check_dataset(dataset,"")  # Check all required input is provided  
+  df <- coloc::process.dataset(d=dataset, suffix="") # Compute lABF for each SNP 
+  
+  # Scale  
+  my.denom.log.abf <- coloc:::logsum(df$lABF)
+  df$SNP.PP <- exp(df$lABF- my.denom.log.abf)
+  
+  return(df)
+}
 
-####
+
+#### finemap.cojo
 
 finemap.cojo <- function(D, cs_threshold=0.99){
   cojo_snp <- unique(D$cojo_snp)
-# Format input
-    D <- D %>%
-      dplyr::mutate(varbeta=bC_se^2) %>%
-      dplyr::select("SNP","Chr","bp","bC","varbeta","n","pC","freq",any_of(c("sdY","s","type"))) %>%
-      rename("snp"="SNP","chr"="Chr","position"="bp","beta"="bC","N"="n","pvalues"="pC","MAF"="freq")
+  # Format input
+  D <- D %>%
+    dplyr::mutate(varbeta=bC_se^2) %>%
+    dplyr::select(SNP, Chr, bp, b, bC, varbeta, n, pC, freq, type, any_of(c("sdY", "s"))) %>%
+    dplyr::rename(snp=SNP, chr=Chr, position=bp, beta=bC, N=n, pvalues=pC, MAF=freq)
 
-  D <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
-  D$type <- unique(D$type)
+  D_list <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
+  D_list$type <- unique(D_list$type)
   #if(D$type=="cc"){D$s <- unique(D$s)}else{D$sdY <- unique(D$sdY)}
   D$sdY <- unique(D$sdY)
 
 # Finemap
-  fine.res <- coloc::finemap.abf(D) %>%
-    mutate(cojo_snp=cojo_snp, bC=c(D$beta, NA)) %>%
+  fine.res <- finemap.abf_NO_PRIOR(D_list) %>%
+    dplyr::left_join(D %>% dplyr::select(snp, b, beta, pvalues, N, chr, type, MAF, varbeta, sdY), join_by("snp")) %>%
+    dplyr::rename(bC=beta, pC=pvalues, "lABF"="lABF.") %>%
     arrange(desc(SNP.PP)) %>%
-    mutate(cred.set = cumsum(SNP.PP)) %>%
-# Add cojo_hit info, to merge with loci table later
-    dplyr::select(snp, position, bC, lABF., cred.set, cojo_snp) %>%
-    rename("lABF"="lABF.") %>%
-    dplyr::filter(snp!="null")
+    dplyr::mutate(cred.set = cumsum(SNP.PP), cojo_snp=cojo_snp) %>%
+    dplyr::select(snp, position, b, bC, pC, lABF, SNP.PP, cred.set, cojo_snp, N, chr, type, MAF, varbeta, sdY) # Add cojo_hit info, to merge with loci table later
 
-# Identify SNPs part of the credible set (as specified by cs_threshold)
+  # Identify SNPs part of the credible set (as specified by cs_threshold)
   w <- which(fine.res$cred.set > cs_threshold)[1]
   cs <- fine.res %>%
-#    slice(1:w) %>%
-    mutate(is_cs=c(rep(TRUE, w), rep(FALSE, (nrow(fine.res)-w)))) %>%
-    select(-cred.set)
+    dplyr::mutate(is_cs = c(rep(TRUE, w), rep(FALSE, (nrow(fine.res)-w)))) %>%
+    dplyr::select(- cred.set)
+  
   return(cs)
 }
 
@@ -441,3 +452,4 @@ hcolo.cojo.ht=function(df1 = conditional.dataset1,
   coloc.final <- list(summary=colo.sum, results=colo.full_res)
   return(coloc.final)
 }
+
