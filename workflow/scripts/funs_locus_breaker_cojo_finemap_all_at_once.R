@@ -453,3 +453,12 @@ hcolo.cojo.ht=function(df1 = conditional.dataset1,
   return(coloc.final)
 }
 
+# function to rename columns, change calss to list, and take unique values as suggested here:
+# https://cran.r-project.org/web/packages/coloc/vignettes/a02_data.html
+prepare4coloc <- function(data){
+  temp  <- data %>% dplyr::rename(beta=bC, pvalues=pC)
+  odata <- as.list(na.omit(temp))
+  odata$type <- unique(odata$type)
+  odata$sdY <- unique(odata$sdY)
+  return(odata)
+}

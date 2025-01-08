@@ -39,19 +39,29 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
   cojo_snp2 <- gsub(paste0(".*/", t2, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t2_path_rds)
   
 # Perform colocalisation for each combination of independent SNPs
-  coloc.res <- hcolo.cojo.ht(
-    df1 = conditional.dataset1 %>% dplyr::select(snp, lABF),
-    df2 = conditional.dataset2 %>% dplyr::select(snp, lABF)
+  # coloc.res <- hcolo.cojo.ht(
+  #   df1 = conditional.dataset1 %>% dplyr::select(snp, lABF),
+  #   df2 = conditional.dataset2 %>% dplyr::select(snp, lABF)
+  # )
+  coloc.res <- coloc::coloc.abf(
+    dataset1 = conditional.dataset1 |> prepare4coloc(),
+    dataset2 = conditional.dataset1 |> prepare4coloc()
   )
-  
+
   # Add top cojo SNPs and traits
   coloc.res$summary <- coloc.res$summary %>%
-    mutate(t1_study_id=x$t1_study_id, t1=t1, t2_study_id=x$t2_study_id, t2=t2, hit1=cojo_snp1, hit2=cojo_snp2)
-  coloc.res
+    t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
+    dplyr::mutate(
+      t1_study_id=x$t1_study_id, t1=t1, 
+      t2_study_id=x$t2_study_id, t2=t2,
+      hit1=cojo_snp1, hit2=cojo_snp2
+      )
+  
+  return(coloc.res)
 })
 
 # Store ALL the summary output in a data frame, adding tested traits column and SAVE 
-only_summary_df <- as.data.frame(data.table::rbindlist(lapply(coloc.full, function(x) { x$summary })))
+only_summary_df <- lapply(coloc.full, function(x) x$summary) %>% data.table::rbindlist() %>% as.data.frame()
 
 only_summary_df <- only_summary_df %>% 
   dplyr::mutate(
