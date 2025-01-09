@@ -1,0 +1,13 @@
+name: coloc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - R
+dependencies:
+  - r-base=4.3.3
+  - r-optparse=1.7.4
+  - r-tidyverse=2.0.0
+  - r-data.table=1.15.2
+  - r-coloc=5.2.3
+  - r-Matrix=1.6_5=r43h316c678_0 # r-Matrix=1.7-1 cannot be installed using current channels!
