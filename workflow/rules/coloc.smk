@@ -1,29 +1,25 @@
 
+
 rule master_file:
     input:
-        ws_path("cojo/{seqid}.sentinel"),
+        expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
     output:
-        sentinel = ws_path("coloc/{seqid}_master_file.sentinel"),
-    params:
-        info = ws_path("cojo/{seqid}/finemaping/*_coloc_info_table.tsv"),
-        ofile = ws_path("coloc/master_coloc.txt"),
+        master = ws_path("coloc/master_coloc.txt"),
+    conda:
+        "../envs/coloc.yml"
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
-    shell:
-        """
-        cat {params.info} >> {params.ofile}
-        touch {output.sentinel}
-        """
+    script:
+        "../scripts/s05_collect_info.R"
 
 
 rule merry_go_round:
     input:
-        sentinel = expand(ws_path("coloc/{seqid}_master_file.sentinel"), seqid=analytes.seqid),
+        master = ws_path("coloc/master_coloc.txt"),
     output:
         sentinel = ws_path("coloc/chr{chr_cs}.sentinel"),
     params:
         pairs = ws_path("coloc/chr{chr_cs}_coloc_pairwise_guide_table.tsv"),
-        info = ws_path("coloc/master_coloc.txt"),
         chr = "{chr_cs}",
     conda:
         "../envs/coloc.yml"
@@ -34,7 +30,7 @@ rule merry_go_round:
     shell:
         """
         Rscript workflow/scripts/s05_find_overlapping_cs.R \
-            --coloc_info_table {params.info} \
+            --coloc_info_table {input.master} \
             --chr_cs {params.chr}  \
             --ofile {params.pairs}
         
