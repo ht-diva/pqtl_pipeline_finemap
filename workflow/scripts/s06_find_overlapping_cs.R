@@ -15,13 +15,9 @@ option_list <- list(
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
-# column names of coloc info table files
-headers = c("phenotype_id", "credible_set", "path_rds", "path_ind_snps")
 
 # List all cs variants
-tb <- data.table::fread(opt$coloc_info_table, header = F, col.names = headers) %>% 
-  dplyr::mutate(chr = stringr::str_extract(credible_set, "(\\d+)")) %>%
-  dplyr::filter(chr==opt$chr_cs)
+tb <- data.table::fread(opt$coloc_info_table, header = T) %>% dplyr::filter(chr == opt$chr_cs)
 
 nrows_tb <- nrow(tb)
 
