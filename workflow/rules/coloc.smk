@@ -29,7 +29,7 @@ rule merry_go_round:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     shell:
         """
-        Rscript workflow/scripts/s05_find_overlapping_cs.R \
+        Rscript workflow/scripts/s06_find_overlapping_cs.R \
             --coloc_info_table {input.master} \
             --chr_cs {params.chr}  \
             --ofile {params.pairs}
@@ -49,9 +49,11 @@ rule run_coloc:
         codes = config.get("path_code"),
         pairs = ws_path("coloc/chr{chr_cs}_coloc_pairwise_guide_table.tsv"),
         chr = "{chr_cs}",
+    resources:
+        runtime=lambda wc, attempt: 999 + attempt * 60,
     shell:
         """
-        Rscript workflow/scripts/s06_coloc.R \
+        Rscript workflow/scripts/s07_coloc.R \
             --pipeline_path {params.codes} \
             --coloc_guide_table {params.pairs} \
             --chr_cs {params.chr}  \
