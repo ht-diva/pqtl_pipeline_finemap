@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name locojo
-#SBATCH --output %j_meta_hole_3M.log
+#SBATCH --job-name coloc
+#SBATCH --output %j_meta_coloc.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
