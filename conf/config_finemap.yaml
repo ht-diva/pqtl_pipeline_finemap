@@ -24,7 +24,7 @@ thresholds:
   p_signif: 2.513826043237808e-10
   p_limit: 1e-04
   ppp: 0.99
-  hole: 250000
+  hole: 3000000
 
 NLRP12: 1
 build: 37
