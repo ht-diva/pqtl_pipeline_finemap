@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name coloc
-#SBATCH --output %j_meta_coloc.log
+#SBATCH --output %j_meta_bybatch.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
