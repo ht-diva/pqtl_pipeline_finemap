@@ -39,18 +39,18 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
   cojo_snp2 <- gsub(paste0(".*/", t2, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t2_path_rds)
   
 # Perform colocalisation for each combination of independent SNPs
-  # coloc.res <- hcolo.cojo.ht(
-  #   df1 = conditional.dataset1 %>% dplyr::select(snp, lABF),
-  #   df2 = conditional.dataset2 %>% dplyr::select(snp, lABF)
-  # )
-  coloc.res <- coloc::coloc.abf(
-    dataset1 = conditional.dataset1 |> prepare4coloc(),
-    dataset2 = conditional.dataset1 |> prepare4coloc()
+  coloc.res <- hcolo.cojo.ht(
+    df1 = conditional.dataset1 %>% dplyr::select(snp, lABF),
+    df2 = conditional.dataset2 %>% dplyr::select(snp, lABF)
   )
+  # coloc.res <- coloc::coloc.abf(
+  #   dataset1 = conditional.dataset1 |> prepare4coloc(),
+  #   dataset2 = conditional.dataset1 |> prepare4coloc()
+  # )
 
   # Add top cojo SNPs and traits
   coloc.res$summary <- coloc.res$summary %>%
-    t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
+    #t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
     dplyr::mutate(
       t1_study_id=x$t1_study_id, t1=t1, 
       t2_study_id=x$t2_study_id, t2=t2,
