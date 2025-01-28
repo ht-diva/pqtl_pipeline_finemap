@@ -27,52 +27,57 @@ coloc_combo_ls <- split(coloc_combo, seq(nrow(coloc_combo)))
 # Perform coloc! 
 coloc.full <- lapply(coloc_combo_ls, function(x){
   
-# Load-in precomputed lABF  
-  conditional.dataset1 <- readRDS(x$t1_path_rds)
-  conditional.dataset2 <- readRDS(x$t2_path_rds)
+# Load-in conditional dataset with precomputed lABF  
+  df_cond_a <- readRDS(x$t1_path_rds)
+  df_cond_b <- readRDS(x$t2_path_rds)
   
 # Retrieve important info from file name
-  t1 <- ifelse(is.na(x$t1_phenotype_id), x$t1_study_id, paste0(x$t1_study_id, "_", x$t1_phenotype_id))
-  cojo_snp1 <- gsub(paste0(".*/", t1, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t1_path_rds)
-  
-  t2 <- ifelse(is.na(x$t2_phenotype_id), x$t2_study_id, paste0(x$t2_study_id, "_", x$t2_phenotype_id))
-  cojo_snp2 <- gsub(paste0(".*/", t2, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t2_path_rds)
+  trait_a <- paste0(x$t1_phenotype_id)
+  cojo_snp_a <- gsub(paste0(".*/", trait_a, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t1_path_rds)
+
+  trait_b <- paste0(x$t2_phenotype_id)
+  cojo_snp_b <- gsub(paste0(".*/", trait_b, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t2_path_rds)
   
 # Perform colocalisation for each combination of independent SNPs
-  # coloc.res <- hcolo.cojo.ht(
-  #   df1 = conditional.dataset1 %>% dplyr::select(snp, lABF),
-  #   df2 = conditional.dataset2 %>% dplyr::select(snp, lABF)
-  # )
+#  coloc.res <- hcolo.cojo.ht(
+#    df1 = df_cond_a %>% dplyr::select(snp, lABF),
+#    df2 = df_cond_b %>% dplyr::select(snp, lABF)
+#  )
+
+  # perform colocalization test in standard way
   coloc.res <- coloc::coloc.abf(
-    dataset1 = conditional.dataset1 |> prepare4coloc(),
-    dataset2 = conditional.dataset1 |> prepare4coloc()
+    dataset1 = df_cond_a |> prepare4coloc(),
+    dataset2 = df_cond_b |> prepare4coloc()
   )
 
   # Add top cojo SNPs and traits
   coloc.res$summary <- coloc.res$summary %>%
-    t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
-    dplyr::mutate(
-      t1_study_id=x$t1_study_id, t1=t1, 
-      t2_study_id=x$t2_study_id, t2=t2,
-      hit1=cojo_snp1, hit2=cojo_snp2
-      )
+   t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
+   dplyr::mutate(
+     study_id_a=x$t1_study_id, trait_a=trait_a, hit_a=cojo_snp_a,
+     study_id_b=x$t2_study_id, trait_b=trait_b, hit_b=cojo_snp_b
+     )
   
   return(coloc.res)
 })
 
-# Store ALL the summary output in a data frame, adding tested traits column and SAVE 
+# Combine coloc summary results for all tested traits pairs, add traits names, convert combined list to data frame 
 only_summary_df <- lapply(coloc.full, function(x) x$summary) %>% data.table::rbindlist() %>% as.data.frame()
 
+# first define column names, then extract seqid and independent SNP from the name of conditional data in RDS
 only_summary_df <- only_summary_df %>% 
   dplyr::mutate(
-    target1 = hit1, target2 = hit2, locus1 = hit1, locus2 = hit2,
-    across(c("t1", "t2"), ~ basename(.x)),
-    across(c("target1", "target2"), ~ basename(.x) %>% str_remove_all("_locus_.*_finemap.rds")),
-    across(c("locus1", "locus2"), ~ basename(.x) %>% str_remove_all("(.*)_locus_") %>% str_remove_all("_finemap.rds"))
+    target_a = hit_a,
+    target_b = hit_b,
+    locus_a = hit_a,
+    locus_b = hit_b,
+    across(c("trait_a",   "trait_b"), ~ basename(.x)),
+    across(c("target_a", "target_b"), ~ basename(.x) %>% str_remove_all("_locus_.*_finemap.rds")),
+    across(c("locus_a",   "locus_b"), ~ basename(.x) %>% str_remove_all("(.*)_locus_") %>% str_remove_all("_finemap.rds"))
     ) %>%
-  dplyr::select(- hit1, - hit2)
+  dplyr::select(trait_a, trait_b, locus_a,locus_b, target_a,target_b, nsnps:PP.H4.abf) # remove hit_a and hit_b
 
-# Give random index for avoiding overwrite (?) --> SHOULD NOT BE NEEDED, TAKEN CARE BY NEXTFLOW
-#random.number=stri_rand_strings(n=1, length=20, pattern = "[A-Za-z0-9]")
+
+# save colocalization results per chromosome
 data.table::fwrite(only_summary_df, file = paste0(opt$ofile), quote=F, sep="\t", na=NA)
 
