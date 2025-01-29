@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name coloc
-#SBATCH --output %j_issue_34.log
+#SBATCH --output %j_coloc.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G

@@ -3,7 +3,7 @@ jobs: 450
 software-deployment-method:
    - conda
 #   - apptainer
-retries: 0
+retries: 3
 
 # Cluster submission
 jobname: "{jobid}.{rule}"
@@ -42,6 +42,6 @@ set-resources:
         mem_mb: 4000 + attempt * 2048
         threads: *cores
     run_coloc:
-        mem_mb: 80000 + attempt * 2048
-        disk_mb: 32000 + attempt * 2048
+        mem_mb: 16000 + attempt * 60048
+        disk_mb: 8000 + attempt * 2048
         threads: *cores
