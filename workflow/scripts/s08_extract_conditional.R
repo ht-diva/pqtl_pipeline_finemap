@@ -65,25 +65,41 @@ grep_conditional <- function(cond_file, target){
   # Access conditional data by target SNP identifier
   cond_data_target <- cond_data$results[[target]]
   
+  # subset mvp result only to target SNP
   mvpt <- mvp %>% dplyr::filter(SNP == target, file == cond_file)
   
   # remove unwanted columns by MVP
-  cond_data_target %>% 
-    #as_tibble() %>%
+  df4vcf <- cond_data_target %>%
+    dplyr::mutate(
+      a1  = str_extract(SNP, "([A-Z])+"),
+      a2  = str_extract(SNP, "([A-Z])+$"),
+      EA  = if_else(a1 == refA, a1, a2),
+      NEA = if_else(a1 != refA, a1, a2)
+    ) %>%
     dplyr::select(
-      SNP, bp, refA, freq, b, se, n # freq_geno, -> to be checked with Claudia which to take
+      SNP, Chr, bp, EA, NEA, freq, b, se, n, mlog10pC # freq_geno, -> to be checked with Claudia which to take
+    ) %>%
+    dplyr::mutate(
+      seqid  = mvpt$seqid,
+      locus  = mvpt$locus,
+      TISSUE = mvpt$TISSUE,
+      GENE_NAME = mvpt$GENE_NAME,
+      UNIPROT   = mvpt$UNIPROT,
+      PROTEIN_NAME = mvpt$PROTEIN_NAME
       ) %>%
-  dplyr::mutate(
-    seqid = mvpt$seqid,
-    locus = mvpt$locus,
-    TISSUE = mvpt$TISSUE,
-    GENE_NAME = mvpt$GENE_NAME,
-    UNIPROT = mvpt$UNIPROT,
-    PROTEIN_NAME = mvpt$PROTEIN_NAME
-    )
+    head() %>%
+    arrange(bp) # sort SNPs for converting to VCF
+  
+  # name VCF file properly
+  ofile_name <- paste0(mvpt$seqid, "_", mvpt$locus, "_target_", mvpt$SNP, ".vcf") 
+  
+  # save VCF file
+  write_vcf(df4vcf, ofile_name)
+  
+  return(ofile_name)
 }
 
-
+# iterate function to save VCF for each input target
 map2(mvp$file, mvp$SNP, grep_conditional)
 
 # save conditional data file
@@ -92,10 +108,5 @@ write.csv(
   paste("conditional_data", seq, locus_data, str_replace_all(target,":","_"), ".csv", sep = "_"),
   row.names = F, quote = F
   )
-
-
-
-
-
 
 
