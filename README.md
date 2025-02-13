@@ -22,6 +22,7 @@ These outputs are going to be stored in `workspace_path` provided by the user in
 
 
 ### Colocalization of Two Proteins
+We performed colocalization (Giambartolomei et al., 2014) across the pQTL signals. To meet the fundamental assumption of colocalization of only one causal variant per locus, we used conditional datasets, thus performing one colocalization test per pair of independent SNPs in 2 overlapping loci. For each regional association and each target SNP, we identified a credible set as the set of variants with posterior inclusion probability (PIP) > 0.99 within the region. More precisely, using the conditional dataset, we computed Approximate Bayes Factors (ABF) with the ‘process.dataset’ function in the coloc v5.2.3 R package and calculated posterior probabilities by normalizing ABFs across variants. Variants were ranked, and those with a cumulative posterior probability exceeding 0.99 were included in the credible sets. Among XXX protein pairs with overlapping loci, XXX protein pairs sharing a credible set variant were then tested for colocalization using the ‘coloc.abf’ function. Colocalized pairs were identified when the posterior probability for hypothesis 4 assuming a shared causal variant for two proteins exceeded 0.80.
 
 
 ### New Features on Top of NF pipeline
@@ -31,4 +32,9 @@ We also incorporated new features such as exclusion of signals in *HLA* and *NLR
 ### NOTE
 The first two steps of the original NF pipeline (mungigg & alignment) are not used in this SMK pipeline for pQTLs. Therefore, it is a MUST to have your GWAS results completely harmonized by your geneotype data. Eg. varinats IDs, refrence/alternate (effect/other) alleles should be concordant across your input files. Our GWAS summary stats from REGENIE are already aligned with QC pipeline (adopted by GWASLab) developed by pQTL analysts team at Health Data Science Center. to do so, you my need a mapping file like here:
 `/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz`
+
+### How to run the pipeline:
+
+First prepare the configuration in config/ folder. Then, run the pipeline by typing below command in the shell.
+sbatch submit.sh
 
