@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name coloc
-#SBATCH --output %j_coloc.log
+#SBATCH --job-name move2mvp
+#SBATCH --output %j_move2mvp.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
