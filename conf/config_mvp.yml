@@ -1,5 +1,7 @@
 
 workspace: "results/meta_hole_3M/"
 path_mvp:  "/group/diangelantonio/users/giulia.pontali/file_to_share/unconditional_IVs_from_MVP_for_coloc.txt"
-
+chain_file: "/group/diangelantonio/public_data/liftOver/hg19ToHg38.over.chain.gz"
+fasta_hg37: "/group/diangelantonio/public_data/liftOver/human_g1k_v37.fasta"
+fasta_hg38: "/group/diangelantonio/public_data/liftOver/hg38.fa"
 #"/group/diangelantonio/users/giulia.pontali/file_to_share/unconditional_IVs_from_MVP.txt"
