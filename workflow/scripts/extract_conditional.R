@@ -14,12 +14,12 @@ library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
 
 # columns of the lifted file
-vcf_header <- c("CHROM_38", "POS_38", "SNP")
+vcf_header <- c("CHROM_38", "POS_38", "SNP_37")
 
 
 # path to MVP results
-path_mvp    <- args[1] #"/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/meta_hole_3M/tidy_mvp.tsv"
-path_lifted <- args[2] #"/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/meta_hole_3M/VCF_lifted/seq.3314.74_10_117869699_118104520_target_10:117966436:A:G.txt"
+path_mvp    <- args[1]
+path_lifted <- args[2]
 path_base   <- args[3]
 
 
@@ -31,7 +31,7 @@ snp_name <- lifted_name %>% str_remove(".*_target_") %>% str_remove(".txt")
 
 
 # output filename
-out_name <- paste0(path_base, "/conditional_data_", seq_name, "_locus_", loc_name, "_target_", str_replace_all(snp_name,":","_"), ".csv")
+out_name <- paste0(path_base, "/conditional_data_", seq_name, "_locus_", loc_name, "_target_", str_replace_all(snp_name,":","_"), ".tsv")
 
 
 #----------------------------------------#
@@ -64,24 +64,42 @@ grep_conditional <- function(cond_file, target){
   conditional_target <- cond_data$results[[target]] %>%
     # retain unavailable columns requested by MVP like MAF
     dplyr::mutate(
+      N = 13445,
       a1  = str_extract(SNP, "([A-Z])+"),
       a2  = str_extract(SNP, "([A-Z])+$"),
-      EA  = if_else(a1 == refA, a1, a2),
-      NEA = if_else(a1 != refA, a1, a2),
-      EAF = if_else(a1 == refA, freq_geno, 1 - freq_geno), # align EAF
-      MAF = if_else(EAF <= 0.50, EAF, 1 - EAF) # compute minor allele frequency
-    ) %>%     # remove unwanted columns by MVP
+      #EA  = if_else(a1 == refA, a1, a2),
+      #NEA = if_else(a1 != refA, a1, a2),
+      EA  = a1,
+      NEA = a2,
+      #EAF = if_else(a1 == refA, freq_geno, 1 - freq_geno), # align EAF
+      EAF = freq_geno,
+      #MAF = if_else(EAF <= 0.50, EAF, 1 - EAF) # compute minor allele frequency
+      MAF = pmin(freq_geno, 1 - freq_geno) # the same formula as Giulia
+    ) %>%
+    # remove unwanted columns by MVP
     dplyr::select(
-      SNP, Chr, bp, EA, NEA, MAF, b, se, n, mlog10pC
+      SNP, Chr, bp, EA, NEA, EAF, MAF, b, se, p, mlog10p, N
+    ) %>%
+    # rename columns for consistency with MVP
+    dplyr::rename(
+      SNP_37 = SNP,
+      CHROM_37 = Chr,
+      POS_37 = bp,
+      BETA = b,
+      STDERR = se,
+      PVAL = p,
+      MLOG10P = mlog10p
     ) %>%
     # add requested columns by MVP
     dplyr::mutate(
-      seqid  = mvp$seqid,
-      locus  = mvp$locus,
+      SeqID  = mvp$seqid,
+      LOCUS_37  = mvp$locus,
       TISSUE = mvp$TISSUE,
       GENE_NAME = mvp$GENE_NAME,
-      UNIPROT   = mvp$UNIPROT,
-      PROTEIN_NAME = mvp$PROTEIN_NAME
+      UNIPROT = mvp$UniProt_ID,
+      PROTEIN_NAME = mvp$PROTEIN_NAME,
+      PROTEIN_LONG_NAME = mvp$Protein.names,
+      DATASET = mvp$DATASET
       )
   
   return(conditional_target)
@@ -103,10 +121,10 @@ cond_merged_b38 <- data.table::fread(
   ) %>%  # merge conditional data with lifted file
   right_join(
     cond_merged,
-    join_by("SNP")
+    join_by("SNP_37")
   )
 
 
 # save conditional data file
-write.csv(cond_merged_b38, file = out_name, row.names = F, quote = F)
+data.table::fwrite(cond_merged_b38, file = out_name, sep = "\t", row.names = F, quote = F)
 
