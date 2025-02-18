@@ -25,9 +25,9 @@ def ws_path(file_path):
     return str(Path(config.get("workspace"), file_path))
 
 def get_vcf_files(input_dir):
-    """Read all VCF files from the specified directory."""
-    """and remove the .vcf extension."""
-    return [f.replace('.vcf', '') for f in os.listdir(input_dir) if f.endswith(".vcf")]
+   """Read all VCF files from the specified directory."""
+   """and remove the .vcf extension."""
+   return [f.replace('.vcf', '') for f in os.listdir(input_dir) if f.endswith(".vcf")]
 
 
 # Discover VCF files in the input directory
@@ -38,21 +38,24 @@ vcf_files = get_vcf_files(vcf_directory)
 
 rule all:
     input:
-        ws_path("tidy_mvp.tsv"),
+        ws_path("mr_results_unique_associations.tsv"),
         expand(ws_path("VCF_lifted/{filename}.txt"), filename=vcf_files),
         expand(ws_path("mvp/{filename}.sentinel"), filename=vcf_files)
 
 
-# Snakemake rule to remove multiple associations for variants in MR results 
-rule tidy_mvp:
+# Remove multiple associations for variants in MR results and 
+# for each variant, extract positions of variants in the locus from conditional data
+# then, save positions and alleles in VCF format
+rule grep_unique_targets:
     input:
         config.get("path_mvp")
     output:
-        ws_path("tidy_mvp.tsv")
+        unique = ws_path("mr_results_unique_associations.tsv"),
+        annotated = ws_path("mr_results_annotated.tsv")
     params:
         config.get("workspace")
     log:
-        ws_path("logs/tidy_mvp.log")
+        ws_path("logs/mr_results_unique_associations.log")
     conda:
         "envs/coloc.yml"
     resources:
@@ -65,7 +68,7 @@ rule tidy_mvp:
 rule liftover_vcf:
     input:
         ws_path("VCF/{filename}.vcf"),
-        ws_path("tidy_mvp.tsv")
+        ws_path("mr_results_unique_associations.tsv")
     output:
         ws_path("VCF_lifted/{filename}.txt")
     log:
@@ -77,13 +80,13 @@ rule liftover_vcf:
         script="workflow/scripts/liftover_bcftool.sh"
     shell:
         """
-        {params.script} {input} {output} {params.chain_file} {params.hg37} {params.hg38} 
+        {params.script} {input[0]} {output} {params.chain_file} {params.hg37} {params.hg38} 
         """
 
 # rule to extract conditional data from RDS and merge them with lifted positions
 rule extract_conditional:
     input:
-        mvp = ws_path("tidy_mvp.tsv"),
+        mvp = ws_path("mr_results_unique_associations.tsv"),
         pos38 = ws_path("VCF_lifted/{filename}.txt")
     output:
         sentinel=touch(ws_path("mvp/{filename}.sentinel"))
