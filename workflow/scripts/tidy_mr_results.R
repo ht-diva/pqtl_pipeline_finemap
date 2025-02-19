@@ -46,7 +46,7 @@ data.table::fwrite(mvp_annotated, file = path_out_full, sep="\t")
 
 #--------------------#
 # shrink MR results to only have one signif assoc per seqid_locus_target combination
-mvp_only_target <- mvp %>% head(100) %>%
+mvp_only_target <- mvp %>%
   dplyr::distinct(CHRPOS_ID, .keep_all = T) %>% # remove multiple associations for a target SNP 
   dplyr::select(
     seqid, locus, SNP, TISSUE, GENE_NAME, UniProt_ID, PROTEIN_NAME, Protein.names, DATASET, file  # columns requested by MVP
