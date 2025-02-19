@@ -72,7 +72,7 @@ rule liftover_vcf:
     output:
         ws_path("VCF_lifted/{filename}.txt")
     log:
-        ws_path("logs/{filename}.log"),
+        ws_path("logs/liftover/{filename}.log"),
     params:
         chain_file = config.get("chain_file"),
         hg37 = config.get("fasta_hg37"),
