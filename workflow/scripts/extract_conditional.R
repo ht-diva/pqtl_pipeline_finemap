@@ -78,17 +78,21 @@ grep_conditional <- function(cond_file, target){
     ) %>%
     # remove unwanted columns by MVP
     dplyr::select(
-      SNP, Chr, bp, EA, NEA, EAF, MAF, b, se, p, mlog10p, N
+      SNP, Chr, bp, EA, NEA, EAF, MAF, b, se, p, mlog10p, N, bC, bC_se, pC, mlog10pC
     ) %>%
     # rename columns for consistency with MVP
     dplyr::rename(
       SNP_37 = SNP,
       CHROM_37 = Chr,
       POS_37 = bp,
-      BETA = b,
-      STDERR = se,
-      PVAL = p,
-      MLOG10P = mlog10p
+      BETA_uncond = b,
+      STDERR_uncond = se,
+      PVAL_uncond = p,
+      MLOG10P_uncond = mlog10p,
+      BETA_cond = bC,
+      STDERR_cond = bC_se,
+      PVAL_cond = pC,
+      MLOG10P_cond = mlog10pC
     ) %>%
     # add requested columns by MVP
     dplyr::mutate(
