@@ -95,6 +95,8 @@ rule extract_conditional:
         script="workflow/scripts/extract_conditional.R"
     conda:
         "envs/coloc.yml"
+    resources:
+        runtime=lambda wc, attempt: 60 + attempt * 30
     shell:
         """
         Rscript {params.script} {input.mvp} {input.pos38} {params.path}
