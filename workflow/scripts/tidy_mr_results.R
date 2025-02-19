@@ -46,10 +46,10 @@ data.table::fwrite(mvp_annotated, file = path_out_full, sep="\t")
 
 #--------------------#
 # shrink MR results to only have one signif assoc per seqid_locus_target combination
-mvp_only_target <- mvp %>%
+mvp_only_target <- mvp %>% head(100) %>%
   dplyr::distinct(CHRPOS_ID, .keep_all = T) %>% # remove multiple associations for a target SNP 
   dplyr::select(
-    seqid, locus, SNP, TISSUE, GENE_NAME, UniProt_ID, PROTEIN_NAME, Protein.names, file  # columns requested by MVP
+    seqid, locus, SNP, TISSUE, GENE_NAME, UniProt_ID, PROTEIN_NAME, Protein.names, DATASET, file  # columns requested by MVP
   )
 
 # save cleansed results
@@ -117,10 +117,8 @@ grep_conditional <- function(cond_file, target){
   # remove unwanted columns by MVP
   df4vcf <- cond_data_target %>%
     dplyr::mutate(
-      a1  = str_extract(SNP, "([A-Z])+"),
-      a2  = str_extract(SNP, "([A-Z])+$"),
-      EA  = if_else(a1 == refA, a1, a2),
-      NEA = if_else(a1 != refA, a1, a2)
+      EA  = str_extract(SNP, "([A-Z])+"), # here, effect allele is equivalent to a1
+      NEA = str_extract(SNP, "([A-Z])+$") # here, non-effect allele is equivalent to a2
     ) %>%
     dplyr::select(
       SNP, Chr, bp, EA, NEA
