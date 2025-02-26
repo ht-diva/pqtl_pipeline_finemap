@@ -30,8 +30,7 @@ def get_vcf_files(input_dir):
    return [f.replace('.vcf', '') for f in os.listdir(input_dir) if f.endswith(".vcf")]
 
 
-# Discover VCF files in the input directory
-# List of VCF files in the input directory
+# Discover VCF files in the input directory and save lis of them
 vcf_directory = ws_path("VCF")
 vcf_files = get_vcf_files(vcf_directory)
 
