@@ -8,7 +8,7 @@ input_hg38=$5
 
 vcf_zip=$(echo $vcf_raw | sed -E 's/vcf/vcf.gz/')
 vcf_std=$(echo $vcf_raw | sed -E 's/vcf/std.vcf.gz/')
-vcf_out=$(echo $vcf_raw | sed -E 's/txt/vcf/')
+vcf_out=$(echo $txt_out | sed -E 's/txt/vcf/')
 
 source /exchange/healthds/singularity_functions
 
