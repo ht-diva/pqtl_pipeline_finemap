@@ -30,11 +30,15 @@ We also incorporated new features such as exclusion of signals in *HLA* and *NLR
 
 
 ### NOTE
-The first two steps of the original NF pipeline (mungigg & alignment) are not used in this SMK pipeline for pQTLs. Therefore, it is a MUST to have your GWAS results completely harmonized by your geneotype data. Eg. varinats IDs, refrence/alternate (effect/other) alleles should be concordant across your input files. Our GWAS summary stats from REGENIE are already aligned with QC pipeline (adopted by GWASLab) developed by pQTL analysts team at Health Data Science Center. to do so, you my need a mapping file like here:
-`/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/table.snp_mapping.tsv.gz`
+This SMK pipeline which is designed for pQTLs project **does not** include munging and alignment of input GWAS summary files. Therefore, it is a MUST to have your GWAS results completely harmonized by your genotype data. Eg. variants IDs, refrence/alternate (effect/other) alleles should be concordant across your input files. Our GWAS summary stats from REGENIE are already aligned with QC pipeline (adopted by GWASLab) developed by pQTL analysts team at Health Data Science Center.
+
 
 ### How to run the pipeline:
+You can use the default configuration file in config/config_finemap.yaml. Otherwise, prepare your configuration in config/ folder. Then, make sure that `configfile` in workflow/Snakefile matches with your newly created config file name. Then, run the pipeline by typing below command in bash.
 
-First prepare the configuration in config/ folder. Then, run the pipeline by typing below command in the shell.
+```bash
 sbatch submit.sh
+```
 
+### Not interested to run colocalization?
+If you want to **skip running colocalization** with your traits, uncomment this `#--until collect_credible_sets` in Makefile. If you want to skip both COJO and colocalization and only run locus breaker, then change previous option in Makefile to `--until collect_loci` and run the pipeline as mentioned before.
