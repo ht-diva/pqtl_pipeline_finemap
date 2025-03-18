@@ -1,1 +1,0 @@
-/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped_filtered/output/seq.9971.5/seq.9971.5.gwaslab.tsv.bgz
