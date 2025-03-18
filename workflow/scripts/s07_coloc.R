@@ -32,10 +32,10 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
   df_cond_b <- readRDS(x$t2_path_rds)
   
 # Retrieve important info from file name
-  trait_a <- paste0(x$t1_phenotype_id)
+  trait_a <- paste0(x$t1_seqid)
   cojo_snp_a <- gsub(paste0(".*/", trait_a, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t1_path_rds)
 
-  trait_b <- paste0(x$t2_phenotype_id)
+  trait_b <- paste0(x$t2_seqid)
   cojo_snp_b <- gsub(paste0(".*/", trait_b, "_(.*)_locus_.*_finemap.rds"), "\\1", x$t2_path_rds)
   
 # Perform colocalisation for each combination of independent SNPs
@@ -54,8 +54,8 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
   coloc.res$summary <- coloc.res$summary %>%
    t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
    dplyr::mutate(
-     study_id_a=x$t1_study_id, trait_a=trait_a, hit_a=cojo_snp_a,
-     study_id_b=x$t2_study_id, trait_b=trait_b, hit_b=cojo_snp_b
+     trait_a=trait_a, hit_a=cojo_snp_a,
+     trait_b=trait_b, hit_b=cojo_snp_b
      )
   
   return(coloc.res)

@@ -151,7 +151,7 @@ loci_list <- check_signif(gwas)
 cat(paste0("done!\n\nSaving index variants..."))
 
 ### Add study ID to the loci table. Save
-loci_list$phenotype_id <- opt$phenotype_id
+loci_list$seqid <- opt$phenotype_id
 fwrite(loci_list, paste0(opt$outdir, "_loci.csv"), sep=",", quote=F, na=NA)
 
 cat(paste0("done!\n"))

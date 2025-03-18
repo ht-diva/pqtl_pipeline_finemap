@@ -93,11 +93,11 @@ if(length(unlist(cs_list)) > length(all_elements)){
   
   # Remove pair testing different conditional dataset for the same trait (study_id + phenotype_id)
   coloc_combo <- coloc_combo %>%
-    dplyr::filter(phenotype_id_t1 != phenotype_id_t2) %>%
+    dplyr::filter(seqid_t1 != seqid_t2) %>%
     dplyr::select(-t1, -t2, -chr_t1, -chr_t2) %>%
     dplyr::rename(
-      t1_phenotype_id = phenotype_id_t1,
-      t2_phenotype_id = phenotype_id_t2,
+      t1_seqid = seqid_t1,
+      t2_seqid = seqid_t2,
       t1_path_rds = path_rds_t1,
       t2_path_rds = path_rds_t2,
       t1_path_ind_snps = path_ind_snps_t1,

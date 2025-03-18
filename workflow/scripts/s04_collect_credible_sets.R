@@ -50,7 +50,7 @@ cojo_meta <- tibble(
       function(x) {
         data.table::fread(x, data.table=F, fill = TRUE) %>% 
         mutate(
-            study_id = stringr::str_split_fixed(basename(x), "_", 2)[,1],
+            seqid = stringr::str_split_fixed(basename(x), "_", 2)[,1],
             locus = stringr::str_split_fixed(basename(x), "_locus_", 2)[,2],
             locus = stringr::str_remove_all(locus, "_conditional_snps.tsv")
             )

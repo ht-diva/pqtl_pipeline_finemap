@@ -313,9 +313,8 @@ lapply(finemap.res, function(x){
   #  --> append each row to a master table collecting all info from processed sum stats
   ### Idea: create guidelines for generating study ids
   tmp <- data.frame(
-    phenotype_id = opt$phenotype_id,
+    seqid = opt$phenotype_id,
     credible_set = paste0(x %>% filter(is_cs==TRUE) %>% pull(snp), collapse=","),
-    #### Nextflow working directory "work" hard coded - KEEP in mind!! ####
     path_rds      = paste0(sp_file_name, "_finemap.rds"),
     path_ind_snps = paste0(sp_file_name, "_final_ind_snps_table.tsv")
   )

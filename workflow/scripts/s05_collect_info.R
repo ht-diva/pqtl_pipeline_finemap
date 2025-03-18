@@ -16,7 +16,7 @@ pcmd <- dirname(exmpl_path)
 #--------------#
 
 coloc_pattern = "seq.(\\d+).(\\d+)/finemaping/(\\d+):(\\d+):[A-Z]:[A-Z]_locus_chr(\\d+)_(\\d+)_(\\d+)_coloc_info_table.tsv"
-headers = c("phenotype_id", "credible_set", "path_rds", "path_ind_snps")
+headers = c("seqid", "credible_set", "path_rds", "path_ind_snps")
 
 # scan COJO results for all proteins sequence
 files_all <- list.files(
