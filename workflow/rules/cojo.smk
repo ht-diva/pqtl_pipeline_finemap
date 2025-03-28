@@ -87,9 +87,11 @@ rule run_cojo:
         #touch {output.sentinel}
         """
 
+
 rule collect_credible_sets:
     input:
         expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
+        rules.collect_loci.output.ofile,
     output:
         ofile=ws_path("cojo/collected_credible_sets.csv"),
     conda:
@@ -98,5 +100,3 @@ rule collect_credible_sets:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     script:
         "../scripts/s04_collect_credible_sets.R"
-
-
