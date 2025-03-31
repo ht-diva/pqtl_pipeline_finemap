@@ -90,6 +90,7 @@ rule run_cojo:
 rule collect_credible_sets:
     input:
         expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
+        ws_path("break/collected_loci_excluding_mhc.csv")
     output:
         ofile=ws_path("cojo/collected_credible_sets.csv"),
     conda:
