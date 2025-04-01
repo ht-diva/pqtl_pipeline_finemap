@@ -194,7 +194,7 @@ cojo.ht=function(D=dataset_gwas
   cat("\n\nMerge with LD reference...done.\n\n")
 
 # step1 determine independent snps -- we removed "--maf ", maf.thresh, from original script
-  system(paste0(gcta.bin," --bfile ", bfile, locus_chr, " --cojo-p ", p.cojo, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct --out ", random.number, "_step1"))
+  system(paste0(gcta.bin," --bfile ", bfile, locus_chr, " --cojo-p ", p.cojo, " --extract ", random.number, "_locus_only.snp.list --cojo-file ", random.number, "_sum.txt --cojo-slct  --cojo-collinear 0.99  --out ", random.number, "_step1"))
 
   if(file.exists(paste0(random.number,"_step1.jma.cojo"))){
     dataset.list=list()
@@ -223,7 +223,7 @@ cojo.ht=function(D=dataset_gwas
         print(ind.snp$SNP[-i])
 
         #Removing "--maf ", maf.thresh, from original script
-        system(paste0(gcta.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+        system(paste0(gcta.bin," --bfile ",bfile, locus_chr, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp  --cojo-collinear 0.99  --out ",random.number,"_step2"))
 
         #### STOP ANALYSIS FOR THAT TOP SNP IN CASE OF COLLINEARITY
         if(!file.exists(paste0(random.number,"_step2.cma.cojo"))){
@@ -248,7 +248,7 @@ cojo.ht=function(D=dataset_gwas
           # Add conditioned gwas to the results list
           dataset.list$results[[i]]=step2.res
           names(dataset.list$results)[i]=ind.snp$SNP[i]
-          system(paste0("rm ",random.number,"_step2.cma.cojo"))
+          #system(paste0("rm ",random.number,"_step2.cma.cojo"))
         }
       }
     } else {
@@ -257,7 +257,7 @@ cojo.ht=function(D=dataset_gwas
 
       write(ind.snp$SNP,ncol=1,file=paste0(random.number,"_independent.snp"))
       #Removing "--maf ", maf.thresh, from original script
-      system(paste0(gcta.bin," --bfile ",bfile, locus_chr," --cojo-p ",p.cojo, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp --out ",random.number,"_step2"))
+      system(paste0(gcta.bin," --bfile ",bfile, locus_chr," --cojo-p ",p.cojo, " --extract ",random.number,"_locus_only.snp.list --cojo-file ",random.number,"_sum.txt --cojo-cond ",random.number,"_independent.snp  --cojo-collinear 0.99  --out ",random.number,"_step2"))
 
       step2.res <- fread(paste0(random.number, "_step2.cma.cojo"), data.table=FALSE) %>%
         dplyr::mutate(
@@ -292,11 +292,12 @@ cojo.ht=function(D=dataset_gwas
   }
 
   # make directory to save the files
-  # locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
-  # system(paste0("mkdir ", locus))
-  # system(paste0("mv *",random.number,"* ", locus))
+  locus <- paste0(locus_chr, "_", locus_start, "_", locus_end)
+  odir <- paste0("results", "/", locus)
+  system(paste0("mkdir ", odir))
+  system(paste0("mv *",random.number,"* ", odir))
 
-  system(paste0("rm *",random.number,"*"))
+  #system(paste0("rm *",random.number,"*"))
   if(exists("dataset.list")){return(dataset.list)}
 }
 
