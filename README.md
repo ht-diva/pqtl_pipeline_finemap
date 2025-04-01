@@ -17,7 +17,7 @@ Once running the pipeline, `rule run_cojo` will generate output files below:
 - colocalization info table containing credible set variants (with cumulative PPI > 0.99) for each independent variant
 - regional association plots
 
-These outputs are going to be stored in `workspace_path` provided by the user in config_finemap.yaml and stored in such directory: 
+These outputs are going to be stored in `workspace_path` provided by the user in config_finemap.yaml and stored in such directory:
 <workspace_path>/results/*/cojo/<seqid>
 
 
@@ -42,3 +42,7 @@ sbatch submit.sh
 
 ### Not interested to run colocalization?
 If you want to **skip running colocalization** with your traits, uncomment this `#--until collect_credible_sets` in Makefile. If you want to skip both COJO and colocalization and only run locus breaker, then change previous option in Makefile to `--until collect_loci` and run the pipeline as mentioned before.
+
+## Workflow example
+
+<img src="dag.svg" alt="example workflow">

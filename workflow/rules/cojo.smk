@@ -87,6 +87,7 @@ rule run_cojo:
         #touch {output.sentinel}
         """
 
+
 rule collect_credible_sets:
     input:
         expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
@@ -99,5 +100,3 @@ rule collect_credible_sets:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     script:
         "../scripts/s04_collect_credible_sets.R"
-
-
