@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name coloc
-#SBATCH --output %j_coloc.log
+#SBATCH --job-name cs_overlap
+#SBATCH --output %j_cs_overlap.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
