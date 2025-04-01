@@ -153,7 +153,7 @@ dataset_gwas <- dataset_gwas %>%
   dplyr::mutate(
     MAF = if_else(!!eaf.label > 0.5, 1 - !!eaf.label, !!eaf.label),
     varbeta = !!se.label ^2,
-    sdY = coloc:::sdY.est(!!se.label, !!eaf.label, !!n.label),
+    sdY = coloc:::sdY.est(varbeta, MAF, !!n.label),
     type = paste0('quant'), # necessary column for fine-mapping
     locus = paste0(locus_name),
     locus_extended = paste0(locus_extended)
