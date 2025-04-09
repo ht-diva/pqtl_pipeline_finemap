@@ -153,9 +153,12 @@ dataset_gwas <- dataset_gwas %>%
   dplyr::mutate(
     type = paste0('quant'), # necessary column for fine-mapping
     locus = paste0(locus_name),
-    locus_extended = paste0(locus_extended)
+    locus_extended = paste0(locus_extended),
+    N_GWAS = !!n.label
   ) %>%
-  rename(SNP = !!snpid.label)
+  dplyr::rename(
+    SNP = !!snpid.label
+    )
 
 cat(paste0("done."))
 
