@@ -323,26 +323,27 @@ finemap.cojo <- function(D, cs_threshold=0.99){
   # Format input
   D <- D %>%
     dplyr::mutate(
-      N = !!n.label,
+      N = 13445,
+      varbeta = bC_se^2,
       varbeta_uncond = se^2,
       MAF = if_else(freq_geno > 0.5, 1 - freq_geno, freq_geno),
       sdY = coloc:::sdY.est(varbeta_uncond, MAF, N)
     ) %>%
-    dplyr::select(SNP, Chr, bp, b, se, varbeta_uncond, p, bC, bC_se, pC, MAF, N, type, sdY) %>% # to ensure having required column for finemap.abf_NO_PRIOR()
+    dplyr::select(SNP, Chr, bp, b, se, varbeta_uncond, p, bC, bC_se, varbeta, pC, MAF, N, type, sdY) %>% # to ensure having required column for finemap.abf_NO_PRIOR()
     dplyr::rename(snp=SNP, chr=Chr, position=bp, beta=bC, pvalues=pC) # rename as coloc::process.dataset() requires
 
   D_list <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
   D_list$type <- unique(D_list$type)
   #if(D$type=="cc"){D$s <- unique(D$s)}else{D$sdY <- unique(D$sdY)}
-  #D$sdY <- unique(D$sdY)
+  D$sdY <- unique(D$sdY)
 
 # Finemap
   fine.res <- finemap.abf_NO_PRIOR(D_list) %>%
-    dplyr::left_join(D %>% dplyr::select(snp, b, beta, pvalues, N, chr, type, MAF, varbeta, sdY), join_by("snp")) %>%
+    dplyr::left_join(D %>% dplyr::select(snp, b, beta, pvalues, N, chr, type, MAF, varbeta_uncond, varbeta, sdY), join_by("snp")) %>%
     dplyr::rename(bC=beta, pC=pvalues, "lABF"="lABF.") %>%
     arrange(desc(SNP.PP)) %>%
     dplyr::mutate(cred.set = cumsum(SNP.PP), cojo_snp=cojo_snp) %>%
-    dplyr::select(snp, position, b, bC, pC, lABF, SNP.PP, cred.set, cojo_snp, N, chr, type, MAF, varbeta, sdY) # Add cojo_hit info, to merge with loci table later
+    dplyr::select(snp, position, b, bC, pC, lABF, SNP.PP, cred.set, cojo_snp, N, chr, type, MAF, varbeta_uncond, varbeta, sdY) # Add cojo_hit info, to merge with loci table later
 
   # Identify SNPs part of the credible set (as specified by cs_threshold)
   w <- which(fine.res$cred.set > cs_threshold)[1]
