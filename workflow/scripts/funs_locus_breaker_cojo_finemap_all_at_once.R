@@ -326,7 +326,7 @@ finemap.cojo <- function(D, cs_threshold=0.99){
       N = N_GWAS,
       varbeta = bC_se^2,
       varbeta_uncond = se^2,
-      MAF = if_else(freq_geno > 0.5, 1 - freq_geno, freq_geno),
+      MAF = if_else(freq > 0.5, 1 - freq, freq),
       sdY = coloc:::sdY.est(varbeta_uncond, MAF, N)
     ) %>% # to ensure having required column for finemap.abf_NO_PRIOR()
     dplyr::select(Chr, bp, SNP, freq, freq_geno, MAF, b, se, varbeta_uncond, p, mlog10p, bC, bC_se, varbeta, pC, mlog10pC, type, n, N, sdY) %>%
