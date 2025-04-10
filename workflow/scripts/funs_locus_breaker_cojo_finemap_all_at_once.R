@@ -189,7 +189,7 @@ cojo.ht=function(D=dataset_gwas
       dplyr::mutate_at(vars(SNP), as.character) %>% # to ensure class of joint column is the same
       #left_join(freqs %>% dplyr::select(ID,FreqREF,REF), by=c("SNP"="ID")) %>%
       #mutate(FREQ=ifelse(REF==!!oa.label, FreqREF, (1-FreqREF))) %>% # Need to compare the alleles to avoid getting only one independent SNP per locus, as a results of zero phenotypic variance.
-      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("type", "sdY")))
+      dplyr::select("SNP",!!ea.label,!!oa.label,!!eaf.label,!!beta.label,!!se.label,!!p.label,!!n.label, any_of(c("type", "N_GWAS")))
   fwrite(D,file=paste0(random.number,"_sum.txt"), row.names=F,quote=F,sep="\t", na=NA)
   cat("\n\nMerge with LD reference...done.\n\n")
 
@@ -210,7 +210,7 @@ cojo.ht=function(D=dataset_gwas
       ) %>%
       dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p, n:pJ, pJ_org, mlog10pJ) %>%  # tidying columns order
       filter(mlog10p > - log10(p.jumper)) %>%   # avoid including any non-significant independent variant to conditional model  
-      left_join(D %>% dplyr::select(SNP,any_of(c("type", "sdY", opt$p_label))), by="SNP")
+      left_join(D %>% dplyr::select(SNP,any_of(c("type", "N_GWAS", opt$p_label))), by="SNP")
 
     dataset.list$ind.snps <- data.frame(matrix(ncol = ncol(ind.snp), nrow = 0))
     colnames(dataset.list$ind.snps) <- colnames(ind.snp)
@@ -241,7 +241,7 @@ cojo.ht=function(D=dataset_gwas
               mlog10pC = safe_pnorm(bC, bC_se)      # compute joint MLOG10P
             ) %>%
             dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p, n:pC, pC_org, mlog10pC) %>%  # tidying columns order
-            left_join(D %>% dplyr::select(SNP, any_of(c("type", "sdY", opt$p_label))), by="SNP") %>%
+            left_join(D %>% dplyr::select(SNP, any_of(c("type", "N_GWAS", opt$p_label))), by="SNP") %>%
             dplyr::mutate(cojo_snp=ind.snp$SNP[i])
           # Add SNPs to the ind.snps dataframe
           dataset.list$ind.snps <- rbind(dataset.list$ind.snps, ind.snp[i,])
@@ -268,7 +268,7 @@ cojo.ht=function(D=dataset_gwas
           mlog10p  = safe_pnorm(b, se),         # compute unconditional MLOG10P
           ) %>%
         dplyr::relocate(Chr:freq, freq_geno, b:p, p_org, mlog10p) %>%  # tidying columns order
-        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("type", "sdY", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
+        left_join(D %>% dplyr::select(SNP,!!ea.label, any_of(c("type", "N_GWAS", opt$p_label))), by=c("SNP", "refA"=opt$ea_label))
 
       #### Add back top SNP, removed from the data frame with the conditioning step
       step2.res <- plyr::rbind.fill(
@@ -322,9 +322,15 @@ finemap.cojo <- function(D, cs_threshold=0.99){
   cojo_snp <- unique(D$cojo_snp)
   # Format input
   D <- D %>%
-    dplyr::mutate(varbeta=bC_se^2) %>%
-    dplyr::select(SNP, Chr, bp, b, bC, varbeta, n, pC, freq, type, any_of(c("sdY", "s"))) %>%
-    dplyr::rename(snp=SNP, chr=Chr, position=bp, beta=bC, N=n, pvalues=pC, MAF=freq)
+    dplyr::mutate(
+      N = N_GWAS,
+      varbeta = bC_se^2,
+      varbeta_uncond = se^2,
+      MAF = if_else(freq > 0.5, 1 - freq, freq),
+      sdY = coloc:::sdY.est(varbeta_uncond, MAF, N)
+    ) %>% # to ensure having required column for finemap.abf_NO_PRIOR()
+    dplyr::select(Chr, bp, SNP, freq, freq_geno, MAF, b, se, varbeta_uncond, p, mlog10p, bC, bC_se, varbeta, pC, mlog10pC, type, n, N, sdY) %>%
+    dplyr::rename(snp=SNP, chr=Chr, position=bp, beta=bC, pvalues=pC) # rename as coloc::process.dataset() requires
 
   D_list <- as.list(na.omit(D)) ### move to list and keep unique value of "type" otherwise ANNOYING ERROR!
   D_list$type <- unique(D_list$type)
@@ -333,11 +339,11 @@ finemap.cojo <- function(D, cs_threshold=0.99){
 
 # Finemap
   fine.res <- finemap.abf_NO_PRIOR(D_list) %>%
-    dplyr::left_join(D %>% dplyr::select(snp, b, beta, pvalues, N, chr, type, MAF, varbeta, sdY), join_by("snp")) %>%
+    dplyr::left_join(D %>% dplyr::select(chr, position, snp, freq, freq_geno, MAF, b, se, varbeta_uncond, p, mlog10p, beta, bC_se, varbeta, pvalues, mlog10pC, type, n, N, sdY), join_by("snp")) %>%
     dplyr::rename(bC=beta, pC=pvalues, "lABF"="lABF.") %>%
     arrange(desc(SNP.PP)) %>%
     dplyr::mutate(cred.set = cumsum(SNP.PP), cojo_snp=cojo_snp) %>%
-    dplyr::select(snp, position, b, bC, pC, lABF, SNP.PP, cred.set, cojo_snp, N, chr, type, MAF, varbeta, sdY) # Add cojo_hit info, to merge with loci table later
+    dplyr::select(snp, chr, freq, freq_geno, MAF, b, se, varbeta_uncond, p, mlog10p, bC, bC_se, varbeta, pC, mlog10pC, type, n, N, sdY, lABF, SNP.PP, cred.set, cojo_snp) # Add cojo_hit info, to merge with loci table later
 
   # Identify SNPs part of the credible set (as specified by cs_threshold)
   w <- which(fine.res$cred.set > cs_threshold)[1]
