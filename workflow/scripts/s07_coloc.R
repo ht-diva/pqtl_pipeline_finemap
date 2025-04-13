@@ -30,6 +30,26 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
 # Load-in conditional dataset with precomputed lABF  
   df_cond_a <- readRDS(x$t1_path_rds)
   df_cond_b <- readRDS(x$t2_path_rds)
+
+  # take the most significant variant and extract characteristics
+  df_top_a <- df_cond_a %>% 
+    slice_max(mlog10pC, n = 1) %>% # collapse values in case more than one snp exists
+    summarise(
+      snp  = paste(unique(snp),  collapse = "; "),
+      freq = paste(unique(freq), collapse = "; "),
+      freq_geno = paste(unique(freq_geno), collapse = "; "),
+      mlog10pC  = paste(unique(mlog10pC),  collapse = "; ")
+      )
+  
+  # take the most significant variant and extract characteristics
+  df_top_b <- df_cond_b %>% 
+    slice_max(mlog10pC, n = 1) %>% # collapse values in case more than one snp exists
+    summarise(
+      snp  = paste(unique(snp),  collapse = "; "),
+      freq = paste(unique(freq), collapse = "; "),
+      freq_geno = paste(unique(freq_geno), collapse = "; "),
+      mlog10pC  = paste(unique(mlog10pC),  collapse = "; ")
+    )
   
 # Retrieve important info from file name
   trait_a <- paste0(x$t1_seqid)
@@ -54,8 +74,18 @@ coloc.full <- lapply(coloc_combo_ls, function(x){
   coloc.res$summary <- coloc.res$summary %>%
    t() %>% as.data.frame() %>%  # transpose and turn class into dataframe to define new features
    dplyr::mutate(
-     trait_a=trait_a, hit_a=cojo_snp_a,
-     trait_b=trait_b, hit_b=cojo_snp_b
+     trait_a = trait_a, 
+     hit_a = cojo_snp_a, 
+     top_cond_a = df_top_a$snp, 
+     top_freq_a = df_top_a$freq, 
+     top_freq_geno_a = df_top_a$freq_geno, 
+     top_mlog10pC_a = df_top_a$mlog10pC,
+     trait_b = trait_b, 
+     hit_b = cojo_snp_b, 
+     top_cond_b = df_top_b$snp,
+     top_freq_b = df_top_b$freq,
+     top_freq_geno_b = df_top_b$freq_geno,
+     top_mlog10pC_b = df_top_b$mlog10pC
      )
   
   return(coloc.res)
@@ -75,7 +105,16 @@ only_summary_df <- only_summary_df %>%
     across(c("target_a", "target_b"), ~ basename(.x) %>% str_remove_all("_locus_.*_finemap.rds")),
     across(c("locus_a",   "locus_b"), ~ basename(.x) %>% str_remove_all("(.*)_locus_") %>% str_remove_all("_finemap.rds"))
     ) %>%
-  dplyr::select(trait_a, trait_b, locus_a,locus_b, target_a,target_b, nsnps:PP.H4.abf) # remove hit_a and hit_b
+  dplyr::select(
+    trait_a, trait_b,
+    locus_a, locus_b,
+    target_a, target_b,
+    top_cond_a, top_cond_b,
+    top_freq_a, top_freq_b,
+    top_freq_geno_a, top_freq_geno_b,
+    top_mlog10pC_a,  top_mlog10pC_b,
+    nsnps:PP.H4.abf
+    ) # remove hit_a and hit_b
 
 
 # save colocalization results per chromosome
