@@ -11,12 +11,22 @@ containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:44f3df5"
 
 # read the configuration file
 configfile: "conf/config_finemap.yaml"
+config_copy = "conf/config_finemap.yaml"
 
 
 include: "rules/common.smk"
 include: "rules/locus_breaker.smk"
 include: "rules/cojo.smk"
 include: "rules/coloc.smk"
+
+rule return_config:
+    output:
+        ws_path("config/config_used.yaml")
+    params:
+        configfile_path=config_copy
+    run:
+        import shutil
+        shutil.copyfile(params.configfile_path, output[0])
 
 
 rule all:
