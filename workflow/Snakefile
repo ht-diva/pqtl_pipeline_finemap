@@ -18,15 +18,7 @@ include: "rules/common.smk"
 include: "rules/locus_breaker.smk"
 include: "rules/cojo.smk"
 include: "rules/coloc.smk"
-
-rule return_config:
-    output:
-        ws_path("config/config_used.yaml")
-    params:
-        configfile_path=config_copy
-    run:
-        import shutil
-        shutil.copyfile(params.configfile_path, output[0])
+include: "rules/return_config.smk"
 
 
 rule all:
@@ -36,3 +28,4 @@ rule all:
         ws_path("break/collected_loci_excluding_mhc.csv"),
         ws_path("cojo/collected_credible_sets.csv"),
         expand(ws_path("coloc/chr{chr_cs}_colocalization.table.all.tsv"), chr_cs = range(1,23)),
+        ws_path("config/config_used.yaml")
