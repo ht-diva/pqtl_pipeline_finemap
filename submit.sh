@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name bybatch
-#SBATCH --output %j_meta_bybatch.log
+#SBATCH --job-name cor_beta
+#SBATCH --output %j_cor_beta.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 4G
