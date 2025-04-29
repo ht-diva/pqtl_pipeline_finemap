@@ -34,7 +34,7 @@ pre-commit:
 
 run:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \
-	snakemake --profile slurm --snakefile workflow/Snakefile/rules/compute_correlation.smk # --until collect_loci #collect_credible_sets
+	snakemake --profile slurm --snakefile workflow/rules/compute_correlation.smk # --until collect_loci #collect_credible_sets
 
 rerun:
 	source $(CONDA_ENV_DIR)/activate $(CONDA_ENV_NAME) && \

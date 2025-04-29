@@ -36,7 +36,7 @@ rule compute_r:
         "../envs/locus_breaker.yml"
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
-        mem_mb=lambda wc, attempt: 3000 + attempt * 1000,
+        mem_mb=lambda wc, attempt: 2000 + attempt * 1000,
     shell:
         """
         Rscript {input.script} {input.path_3m} {input.path_bb} {output.ofile}
