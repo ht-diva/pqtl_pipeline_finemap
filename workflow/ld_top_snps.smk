@@ -22,6 +22,7 @@ my_df = (
 rule all:
     input:
         expand(str(Path("results/ld_test/{top_snps}.ld")), top_snps=my_df.top_cond_ab),
+        "results/ld_test/ld_r2_summary.tsv",
 
 
 rule compute_ld:
@@ -53,4 +54,30 @@ rule compute_ld:
             --memory 4000 'require'
 
         mv {output.ld}.log {output.ld}
+        """
+
+
+# Rule to summarize the results
+rule summarize_results:
+    input:
+        ld  = expand("results/ld_test/{top_snps}.ld", top_snps=my_df.top_cond_ab),
+    output:
+        summary= "results/ld_test/ld_r2_summary.tsv",
+    shell:
+        """
+        echo -e 'SNP_A\tSNP_B\tr2\tDprime' > {output.summary}
+        for ld_file in {input.ld}; do
+            pair=$(basename "$ld_file" .ld)
+            SNP_A=$(echo $pair | cut -d'_' -f1)
+            SNP_B=$(echo $pair | cut -d'_' -f2)
+            R2_LINE=$(grep -E 'r\^2\s*=' "$ld_file")
+            if [[ -n "$R2_LINE" ]]; then
+                R2=$(echo "$R2_LINE" | awk '{{print $3}}')
+                Dp=$(echo "$R2_LINE" | awk '{{print $6}}')
+            else
+                R2="NA"
+                Dp="NA"
+            fi
+            echo -e "$SNP_A\t$SNP_B\t$R2\t$Dp" >> {output.summary}
+        done
         """
