@@ -18,35 +18,39 @@ my_df = (
     .sort_index()
 )
 
-#print(my_df)
-
-def get_top_a(wildcards):
-    return str(my_df.loc[wildcards, ["top_cond_a", "top_cond_b"]])
-
 
 rule all:
     input:
-        expand(str(Path("results/ld_test/{top_snps}.sentinel")), top_snps=my_df.top_cond_ab)
+        expand(str(Path("results/ld_test/{top_snps}.ld")), top_snps=my_df.top_cond_ab),
 
 
 rule compute_ld:
     input:
         path_coloc = "coloc_res.tsv"
     output:
-        sentinel = Path("results/ld_test/{top_snps}.sentinel")
+        ld  = Path("results/ld_test/{top_snps}.ld"),
     params:
-        #lambda wildcards: get_top_a(wildcards.top_snps)
-        ld  = Path("results/ld_test/{top_snps}_ld"),
         snp_pair = "{top_snps}",
         bfile = genotype
-    #log:
-    #    ws_path("logs/break/{seqid}.log"),
     conda:
         "envs/coloc.yml"
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     shell:
         """
-        workflow/pairwise_ld.sh  {params.snp_pair}  {params.bfile}  {params.ld}
-        touch {output.sentinel}
+        source /center/healthds/singularity_functions
+
+        out_ld=$(echo {output.ld} | sed 's/.log//')
+        snp_a=$(echo {params.snp_pair} | cut -d'_' -f1)
+        snp_b=$(echo {params.snp_pair} | cut -d'_' -f2)
+
+        plink2 \
+            --bfile {params.bfile} \
+            --ld "$snp_a" "$snp_b" \
+            --allow-no-sex \
+            --out $out_ld \
+            --threads 2  \
+            --memory 4000 'require'
+
+        mv {output.ld}.log {output.ld}
         """
