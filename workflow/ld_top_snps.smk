@@ -82,3 +82,21 @@ rule combine_ld:
             echo -e "$SNP_A\t$SNP_B\t$R2\t$Dp" >> {output.summary}
         done
         """
+
+rule append_ld:
+    input:
+        coloc = "coloc_res.tsv",
+        summary = "results/ld_test/combined_ld.tsv",
+    output:
+        coloc_ld = "results/ld_test/combined_coloc_with_ld.tsv",
+    conda:
+        "envs/coloc.yml"
+    resources:
+        runtime=lambda wc, attempt: 999 + attempt * 60,
+    shell:
+        """
+        Rscript workflow/scripts/s10_append_ld.R \
+            --coloc {input.coloc} \
+            --ld {input.summary} \
+            --ofile {output.coloc_ld}
+        """
