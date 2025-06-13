@@ -22,7 +22,8 @@ my_df = (
 rule all:
     input:
         expand(str(Path("results/ld_test/{top_snps}.ld")), top_snps=my_df.top_cond_ab),
-        "results/ld_test/ld_r2_summary.tsv",
+        "results/ld_test/combined_ld.tsv",
+        "results/ld_test/combined_coloc_with_ld.tsv",
 
 
 rule compute_ld:
@@ -58,11 +59,11 @@ rule compute_ld:
 
 
 # Rule to summarize the results
-rule summarize_results:
+rule combine_ld:
     input:
         ld  = expand("results/ld_test/{top_snps}.ld", top_snps=my_df.top_cond_ab),
     output:
-        summary= "results/ld_test/ld_r2_summary.tsv",
+        summary= "results/ld_test/combined_ld.tsv",
     shell:
         """
         echo -e 'SNP_A\tSNP_B\tr2\tDprime' > {output.summary}
