@@ -26,9 +26,22 @@ rule all:
         "results/ld_test/combined_coloc_with_ld.tsv",
 
 
+rule separate_snps:
+    input:
+        "results/ld_test/combined_coloc_with_ld.tsv",
+    output:
+        "results/ld_test/coloc_res.tsv",
+    conda:
+        "envs/coloc.yml"
+    resources:
+        runtime=lambda wc, attempt: 999 + attempt * 60,
+    script:
+        "../scripts/s09_split_coloc.R"
+
+
 rule compute_ld:
     input:
-        path_coloc = "coloc_res.tsv"
+        path_coloc = "results/ld_test/coloc_res.tsv"
     output:
         ld  = Path("results/ld_test/{top_snps}.ld"),
     params:
@@ -82,6 +95,7 @@ rule combine_ld:
             echo -e "$SNP_A\t$SNP_B\t$R2\t$Dp" >> {output.summary}
         done
         """
+
 
 rule append_ld:
     input:
