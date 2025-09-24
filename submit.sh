@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name coloc
-#SBATCH --output %j_coloc.log
+#SBATCH --job-name ld_test
+#SBATCH --output %j_ld_test.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
-#SBATCH --mem 4G
+#SBATCH --mem 1G
 #SBATCH --time 30-00:00:00
 
 source ~/.bashrc
