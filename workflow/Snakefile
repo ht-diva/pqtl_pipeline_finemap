@@ -24,6 +24,6 @@ include: "rules/return_config.smk"
 rule all:
     input:
         rules.collect_loci.output[1],
-        ws_path("cojo/collected_credible_sets.csv"),
+        rules.collect_conditionals.output.ofile,
         expand(ws_path("coloc/chr{chr_cs}_colocalization.table.all.tsv"), chr_cs = range(1,23)),
         ws_path("config/config_used.yaml")

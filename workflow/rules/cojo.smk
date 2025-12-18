@@ -91,9 +91,9 @@ rule run_cojo:
 rule collect_credible_sets:
     input:
         expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
-        ws_path("break/collected_loci_excluding_mhc.csv")
+        rules.collect_loci.output.ofile,
     output:
-        ofile=ws_path("cojo/collected_credible_sets.csv"),
+        ofile=ws_path("combined_conditional_snps.csv"),
     conda:
         "../envs/locus_breaker.yml"
     resources:
