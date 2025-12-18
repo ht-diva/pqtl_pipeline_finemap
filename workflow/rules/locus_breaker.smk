@@ -41,7 +41,7 @@ rule collect_loci:
     input:
         expand(ws_path("break/{seqid}_loci.csv"), seqid=analytes.seqid),
     output:
-        ofile=ws_path("break/collected_loci_excluding_mhc.csv"),
+        ofile=ws_path("combined_loci.csv"),
     conda:
         "../envs/locus_breaker.yml"
     params:
