@@ -10,8 +10,8 @@ containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline_finemap:44f3df5"
 
 
 # read the configuration file
-configfile: "conf/config_finemap.yaml"
-config_copy = "conf/config_finemap.yaml"
+configfile: "conf/config.yaml"
+config_copy = "conf/config.yaml"
 
 
 include: "rules/common.smk"
