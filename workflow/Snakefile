@@ -21,9 +21,17 @@ include: "rules/coloc.smk"
 include: "rules/return_config.smk"
 
 
-rule all:
-    input:
-        rules.collect_loci.output[1],
-        rules.collect_conditionals.output.ofile,
-        expand(ws_path("coloc/chr{chr_cs}_colocalization.table.all.tsv"), chr_cs = range(1,23)),
-        ws_path("config/config_used.yaml")
+if config.get("run_coloc"):
+    rule all:
+        input:
+            rules.collect_loci.output[0],
+            rules.collect_conditionals.output.ofile,
+            expand(ws_path("coloc/chr{chr_cs}_colocalization.table.all.tsv"), chr_cs = range(1,23)),
+            ws_path("config/config_used.yaml")
+
+else:
+    rule all:
+        input:
+            rules.collect_loci.output[0],
+            rules.collect_conditionals.output.ofile,
+            ws_path("config/config_used.yaml")
