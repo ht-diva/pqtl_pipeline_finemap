@@ -88,7 +88,7 @@ rule run_cojo:
         """
 
 
-rule collect_credible_sets:
+rule collect_conditionals:
     input:
         expand(ws_path("cojo/{seqid}.sentinel"), seqid=analytes.seqid),
         rules.collect_loci.output.ofile,
@@ -99,4 +99,4 @@ rule collect_credible_sets:
     resources:
         runtime=lambda wc, attempt: 999 + attempt * 60,
     script:
-        "../scripts/s04_collect_credible_sets.R"
+        "../scripts/s04_collect_conditionals.R"
